@@ -1,10 +1,13 @@
-source "http://rubygems.org"
-# Add dependencies required to use your gem here.
-# Example:
-#   gem "activesupport", ">= 2.3.5"
+source 'https://rubygems.org'
 
-# Add dependencies to develop your gem here.
-# Include everything needed to run rake, tests, features, etc.
+gem 'jekyll', '~> 2.0.0'
+gem 'thor'
+gem 'safe_yaml'
+gem 'stringex'
+gem 'rack-livereload'
+gem 'guard-livereload'
+gem 'unicorn'
+
 group :development do
   gem "minitest", ">= 0"
   gem "rdoc", "~> 3.12"

@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-require 'rubygems'
 require 'bundler'
+
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
@@ -10,6 +10,7 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'rake'
+require './lib/hawkins/version'
 
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
@@ -18,9 +19,10 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/awood/hawkins"
   gem.license = "MIT"
   gem.summary = %Q{A Jekyll extension that adds in Live Reload and page isolation}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.description = gem.summary
   gem.email = "awood@redhat.com"
   gem.authors = ["Alex Wood"]
+  gem.version = Hawkins::VERSION
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new

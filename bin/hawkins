@@ -1,0 +1,6 @@
+#! /usr/bin/env ruby
+
+require 'hawkins'
+require 'hawkins/cli'
+
+Hawkins::Cli.start(ARGV)
