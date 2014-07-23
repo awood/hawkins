@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'bundler'
+require 'bundler/gem_tasks'
 
 begin
   Bundler.setup(:default, :development)
@@ -9,25 +10,14 @@ rescue Bundler::BundlerError => e
   $stderr.puts "Run `bundle install` to install missing gems"
   exit e.status_code
 end
-require 'rake'
+
 require './lib/hawkins/version'
 
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://guides.rubygems.org/specification-reference/ for more options
-  gem.name = "hawkins"
-  gem.homepage = "http://github.com/awood/hawkins"
-  gem.license = "MIT"
-  gem.summary = %Q{A Jekyll extension that adds in Live Reload and page isolation}
-  gem.description = gem.summary
-  gem.email = "awood@redhat.com"
-  gem.authors = ["Alex Wood"]
-  gem.version = Hawkins::VERSION
-  # dependencies defined in Gemfile
-end
-Jeweler::RubygemsDotOrgTasks.new
-
+require 'rake'
 require 'rake/testtask'
+require 'rdoc/task'
+
+task :default => :test
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
@@ -40,9 +30,6 @@ task :simplecov do
   Rake::Task['test'].execute
 end
 
-task :default => :test
-
-require 'rdoc/task'
 Rake::RDocTask.new do |rdoc|
   version = File.exist?('VERSION') ? File.read('VERSION') : ""
 
