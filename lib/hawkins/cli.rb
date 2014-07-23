@@ -1,11 +1,3 @@
-#! /usr/bin/env ruby
-
-require 'date'
-require 'guard'
-require 'safe_yaml/load'
-require 'stringex_lite'
-require 'thor'
-
 module Hawkins
 
   class Cli < Thor
