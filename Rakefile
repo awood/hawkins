@@ -23,13 +23,15 @@ Jeweler::Tasks.new do |gem|
   gem.email = "awood@redhat.com"
   gem.authors = ["Alex Wood"]
   gem.version = Hawkins::VERSION
+  gem.require_paths = %w(lib)
+  gem.files = %x(git ls-files).split($/)
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
 
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
-  test.libs << 'lib' << 'test'
+  test.libs = %w(lib test)
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
 end
