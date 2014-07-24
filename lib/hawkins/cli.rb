@@ -39,8 +39,6 @@ module Hawkins
       exec(*[options[:editor], editor_args, path_to(dest, filename)].compact)
     end
 
-    ISOLATION_FILE = ".isolation_config.yml"
-
     desc "isolate FILE ...", "work on a file or files in isolation (globs are allowed)"
     long_desc <<-LONGDESC
       Jekyll's regeneration capability is limited to regenerating the
@@ -58,7 +56,7 @@ module Hawkins
       config = {}
 
       pages = []
-      pages << %w(md html textile markdown mkd mkdn).map do |ext|
+      pages << Hawkins::DEFAULT_EXTENSIONS.map do |ext|
         Dir.glob("**/*.#{ext}")
       end
       pages.flatten!.reject! { |f| File.fnmatch?('_site/*', f) }
@@ -73,7 +71,21 @@ module Hawkins
       config['exclude'] += old_config['exclude'] || []
 
       # When using pagination, Jekyll wants an index.html
-      config['include'] = Set.new(%w(*.less *.js *.css *.png 404.html index.*))
+      config['include'] = Set.new(%w(
+        *.less
+        *.js
+        *.css
+        *.png
+        *.jpg
+        *.gif
+        *.jpeg
+        *.eot
+        *.svg
+        *.ttf
+        *.woff
+        404.html
+        index.*
+      ))
       files.each do |glob|
         matches = Dir.glob(glob)
         matches.map! do |f|
@@ -90,17 +102,32 @@ module Hawkins
       end
 
       config['include'] = config['include'].to_a
-      create_file(ISOLATION_FILE, YAML.dump(config))
+      create_file(Hawkins::ISOLATION_FILE, YAML.dump(config))
       begin
         invoke(:serve, [])
       ensure
-        remove_file(ISOLATION_FILE)
+        remove_file(Hawkins::ISOLATION_FILE)
       end
     end
 
     desc "serve", "render and serve the site"
     def serve
-      Guard.start
+      config_files = ::Jekyll::Configuration.new.config_files({})
+      config_files << Hawkins::ISOLATION_FILE if File.exist?(Hawkins::ISOLATION_FILE)
+      contents = <<-GUARDFILE.gsub(/^\s*/,'')
+        guard 'hawkins',
+          :config => #{config_files} do
+          watch %r{.*}
+          ignore %r{^_site}
+        end
+
+        guard 'livereload',
+          :grace_period => 5 do
+          watch %r{.*}
+        end
+      GUARDFILE
+      Guard.setup(:guardfile_contents => contents)
+      Guard.run_all
       while Guard.running do
         sleep 1
       end

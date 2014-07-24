@@ -23,7 +23,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency("stringex")
   spec.add_runtime_dependency("rack-livereload")
   spec.add_runtime_dependency("guard-livereload")
-  spec.add_runtime_dependency("unicorn")
+  spec.add_runtime_dependency("guard")
+  spec.add_runtime_dependency("thin")
 
   spec.add_development_dependency("bundler", "~> 1.6")
   spec.add_development_dependency("rake")
