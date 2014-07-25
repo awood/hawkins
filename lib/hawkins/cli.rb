@@ -10,7 +10,8 @@ module Hawkins
     def initialize(*args)
       super
       Jekyll.logger.log_level = :warn
-      @jekyll_config = Jekyll.configuration({})
+      @jekyll_config = Jekyll::Configuration[Jekyll::Configuration::DEFAULTS]
+      @jekyll_config.read_config_files(@jekyll_config.config_files({}))
     end
 
     desc "post TITLE", "create a post"
@@ -107,15 +108,17 @@ module Hawkins
 
     desc "serve", "render and serve the site"
     def serve
-      isolation_config = jekyll_config.dup
+      isolation_config = jekyll_config.clone
       if File.exist?(Hawkins::ISOLATION_FILE)
         isolation_config.read_config_file(Hawkins::ISOLATION_FILE)
       end
 
       # TODO set ignore to jekyll_config['destination'] but by default Jekyll
       # uses the absolute path and Guard doesn't so we need to fix that.
+
+      # FIXME: Figure out how to turn off interactor
       contents = <<-GUARDFILE.gsub(/^\s*/,'')
-        interactor :off
+        # interactor :off
         notification :off
         guard 'hawkins',
           :config_hash => #{isolation_config} do

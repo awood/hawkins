@@ -241,7 +241,7 @@ module Guard
       Thread.new do
         Thin::Server.start(@config['host'], @config['port'], :signals => false) do
           require 'rack/livereload'
-          require 'hawkins/isolation.rb'
+          require 'hawkins/isolation'
           use Rack::LiveReload,
             :min_delay => 500,
             :max_delay => 2000,
