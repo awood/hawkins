@@ -1,6 +1,7 @@
 #! /usr/bin/env ruby
 
 require 'pathname'
+require 'rack'
 require 'safe_yaml/load'
 require 'set'
 
@@ -101,7 +102,7 @@ module Hawkins
     end
 
     def mime(path_info)
-      Mime.mime_type(File.extname(path_info))
+      Rack::Mime.mime_type(File.extname(path_info))
     end
 
     def file_info(path)

@@ -1,6 +1,7 @@
 require 'date'
 require 'guard'
 require 'jekyll'
+require 'rack'
 require 'safe_yaml/load'
 require 'stringex_lite'
 require 'thor'

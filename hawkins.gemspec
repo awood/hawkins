@@ -17,18 +17,19 @@ Gem::Specification.new do |spec|
   spec.test_files = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency("guard")
+  spec.add_runtime_dependency("guard-livereload")
   spec.add_runtime_dependency("jekyll", "~> 2.0.0")
-  spec.add_runtime_dependency("thor")
+  spec.add_runtime_dependency("rack")
+  spec.add_runtime_dependency("rack-livereload")
   spec.add_runtime_dependency("safe_yaml")
   spec.add_runtime_dependency("stringex")
-  spec.add_runtime_dependency("rack-livereload")
-  spec.add_runtime_dependency("guard-livereload")
-  spec.add_runtime_dependency("guard")
   spec.add_runtime_dependency("thin")
+  spec.add_runtime_dependency("thor")
 
   spec.add_development_dependency("bundler", "~> 1.6")
-  spec.add_development_dependency("rake")
   spec.add_development_dependency("minitest" )
+  spec.add_development_dependency("rake")
   spec.add_development_dependency("rdoc", "~> 3.12")
   spec.add_development_dependency("simplecov")
 end
