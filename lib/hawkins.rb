@@ -24,5 +24,22 @@ module Hawkins
     yml
   )
 
+  # When using pagination, Jekyll wants an index.html
+  DEFAULT_INCLUDES = %w(
+        *.less
+        *.js
+        *.css
+        *.png
+        *.jpg
+        *.gif
+        *.jpeg
+        *.eot
+        *.svg
+        *.ttf
+        *.woff
+        404.html
+        index.*
+  )
+
   ISOLATION_FILE = ".isolation_config.yml"
 end

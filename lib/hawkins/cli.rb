@@ -1,7 +1,17 @@
-module Hawkins
+require 'jekyll'
+require 'guard'
 
+module Hawkins
   class Cli < Thor
     include Thor::Actions
+
+    attr_accessor :jekyll_config
+
+    def initialize(*args)
+      super
+      Jekyll.logger.log_level = :warn
+      @jekyll_config = Jekyll.configuration({})
+    end
 
     desc "post TITLE", "create a post"
     option :editor, :default => ENV['VISUAL'] || ENV['EDITOR'] || 'vi'
@@ -52,9 +62,6 @@ module Hawkins
     def isolate(*files)
       SafeYAML::OPTIONS[:default_mode] = :safe
 
-      old_config = SafeYAML.load_file("_config.yml")
-      config = {}
-
       pages = []
       pages << Hawkins::DEFAULT_EXTENSIONS.map do |ext|
         Dir.glob("**/*.#{ext}")
@@ -67,25 +74,11 @@ module Hawkins
         # convertible.rb read_yaml method.
         content =~ /\A(---\s*\n.*?\n?)^(---\s*$\n?)/m
       end
-      config['exclude'] = pages
-      config['exclude'] += old_config['exclude'] || []
 
-      # When using pagination, Jekyll wants an index.html
-      config['include'] = Set.new(%w(
-        *.less
-        *.js
-        *.css
-        *.png
-        *.jpg
-        *.gif
-        *.jpeg
-        *.eot
-        *.svg
-        *.ttf
-        *.woff
-        404.html
-        index.*
-      ))
+      isolation_config = {}
+      isolation_config['exclude'] = pages.concat(jekyll_config['exclude'])
+      isolation_config['include'] = Hawkins::DEFAULT_INCLUDES
+
       files.each do |glob|
         matches = Dir.glob(glob)
         matches.map! do |f|
@@ -98,11 +91,13 @@ module Hawkins
         if matches.empty?
           raise Thor::Error.new("Could not find any matches for #{glob}.")
         end
-        config['include'].add(*matches)
+        isolation_config['include'] += matches
       end
 
-      config['include'] = config['include'].to_a
-      create_file(Hawkins::ISOLATION_FILE, YAML.dump(config))
+      isolation_config['include'].uniq!
+
+      create_file(Hawkins::ISOLATION_FILE, YAML.dump(isolation_config))
+
       begin
         invoke(:serve, [])
       ensure
@@ -112,11 +107,18 @@ module Hawkins
 
     desc "serve", "render and serve the site"
     def serve
-      config_files = ::Jekyll::Configuration.new.config_files({})
-      config_files << Hawkins::ISOLATION_FILE if File.exist?(Hawkins::ISOLATION_FILE)
+      isolation_config = jekyll_config.dup
+      if File.exist?(Hawkins::ISOLATION_FILE)
+        isolation_config.read_config_file(Hawkins::ISOLATION_FILE)
+      end
+
+      # TODO set ignore to jekyll_config['destination'] but by default Jekyll
+      # uses the absolute path and Guard doesn't so we need to fix that.
       contents = <<-GUARDFILE.gsub(/^\s*/,'')
+        interactor :off
+        notification :off
         guard 'hawkins',
-          :config => #{config_files} do
+          :config_hash => #{isolation_config} do
           watch %r{.*}
           ignore %r{^_site}
         end
@@ -126,8 +128,7 @@ module Hawkins
           watch %r{.*}
         end
       GUARDFILE
-      Guard.setup(:guardfile_contents => contents)
-      Guard.run_all
+      Guard.start(:guardfile_contents => contents)
       while Guard.running do
         sleep 1
       end
