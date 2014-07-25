@@ -11,26 +11,24 @@ module Hawkins
 
     def initialize(options={})
       @options = options
-      @site_root = @options[:site_root] || "_site"
+      @site_root = @options[:site_root] || Jekyll.configuration({})['destination']
       SafeYAML::OPTIONS[:default_mode] = :safe
     end
 
     def call(env)
       req = Rack::Request.new(env)
-
       path = Pathname.new(req.path_info).relative_path_from(Pathname.new('/'))
-      if path.directory?
-        path = path.join(Pathname.new("index.html")).cleanpath
-      end
-      path = path.to_s
+      path = File.join(site_root, path.to_s)
 
-      files = Dir[File.join(site_root, "**/*")].map do |f|
-        Pathname.new(f).relative_path_from(Pathname.new(site_root)).to_s
+      if File.directory?(path)
+        path = File.join(path, "index.html")
       end
+      path = Pathname.new(path).cleanpath.to_s
 
+      files = Dir[File.join(site_root, "**/*")]
       if files.include?(path)
         mime = mime(path)
-        file = file_info(File.join(site_root, path))
+        file = file_info(path)
         body = file[:body]
         time = file[:time]
         hdrs = { 'Last-Modified'  => time }
@@ -106,12 +104,11 @@ module Hawkins
     end
 
     def file_info(path)
-      expand_path = File.expand_path(path)
-      File.open(expand_path, 'r') do |f|
+      File.open(path, 'r') do |f|
         {
           :body => f.read,
           :time => f.mtime.httpdate,
-          :expand_path => expand_path
+          :expand_path => path
         }
       end
     end
