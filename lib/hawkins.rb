@@ -7,8 +7,8 @@ require 'stringex_lite'
 require 'thor'
 
 require 'hawkins/cli'
-require 'hawkins/version'
 require 'hawkins/guard'
+require 'hawkins/version'
 
 module Hawkins
   DEFAULT_EXTENSIONS = %w(

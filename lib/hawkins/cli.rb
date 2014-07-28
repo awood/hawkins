@@ -56,7 +56,7 @@ module Hawkins
       entire site.  This option will ignore all files except the ones you
       specify in order to speed regeneration.
 
-      Keep in mind that Jekyll's exclusion mechanism is not aware of
+      Keep in mind that Jekyll's inclusion mechanism is not aware of
       subdirectories so this command operates on the basename of all files
       that match the file or glob you provide.
     LONGDESC
@@ -97,10 +97,12 @@ module Hawkins
 
       isolation_config['include'].uniq!
 
+      # We have to write the isolation config out to a file so that the Guard
+      # can detect when the configuration changes.
       create_file(Hawkins::ISOLATION_FILE, YAML.dump(isolation_config))
 
       begin
-        invoke(:serve, [])
+        serve
       ensure
         remove_file(Hawkins::ISOLATION_FILE)
       end
@@ -108,22 +110,22 @@ module Hawkins
 
     desc "serve", "render and serve the site"
     def serve
-      isolation_config = jekyll_config.clone
+      config_files = jekyll_config.config_files({}) || []
       if File.exist?(Hawkins::ISOLATION_FILE)
-        isolation_config.read_config_file(Hawkins::ISOLATION_FILE)
+        config_files << Hawkins::ISOLATION_FILE
       end
 
-      # TODO set ignore to jekyll_config['destination'] but by default Jekyll
-      # uses the absolute path and Guard doesn't so we need to fix that.
+      # By default Jekyll uses the absolute path and Guard doesn't so we need to fix that.
+      dest = Pathname.new(jekyll_config['destination']).relative_path_from(Pathname.new(Dir.pwd))
 
       # FIXME: Figure out how to turn off interactor
       contents = <<-GUARDFILE.gsub(/^\s*/,'')
         # interactor :off
         notification :off
         guard 'hawkins',
-          :config_hash => #{isolation_config} do
+          :config => #{config_files} do
           watch %r{.*}
-          ignore %r{^_site}
+          ignore %r{^#{dest}}
         end
 
         guard 'livereload',

@@ -8,10 +8,12 @@ require 'set'
 module Hawkins
   class IsolationInjector
     attr_reader :site_root
+    attr_reader :isolation_file
 
     def initialize(options={})
       @options = options
       @site_root = @options[:site_root] || Jekyll.configuration({})['destination']
+      @isolation_file = @options[:isolation_file] || Hawkins::ISOLATION_FILE
       SafeYAML::OPTIONS[:default_mode] = :safe
     end
 
@@ -46,38 +48,38 @@ module Hawkins
     end
 
     def handle_404(req, true_path)
-      if File.exist?(Hawkins::ISOLATION_FILE)
+      if File.exist?(isolation_file)
         file = true_path
         # Use a wildcard since the origin file could be anything
         file = "#{File.basename(file, File.extname(file))}.*".force_encoding('utf-8')
 
-        old_config = SafeYAML.load_file(ISOLATION_FILE)
+        config = SafeYAML.load_file(isolation_file)
 
-        file_set = Set.new(old_config['include'])
+        file_set = Set.new(config['include'])
 
         # Prevent loops.  If it's already in 'include'
         # then we've gone through here before.
         return static_error if file_set.include?(file)
 
-        old_config['include'] = file_set.add(file).to_a
+        config['include'] = file_set.add(file).to_a
 
-        File.open(ISOLATION_FILE, 'w') do |f|
-          YAML.dump(old_config, f)
+        File.open(isolation_file, 'w') do |f|
+          YAML.dump(config, f)
         end
 
         response = <<-PAGE.gsub(/^\s*/, '')
-        <!DOCTYPE HTML>
-        <html lang="en-US">
-        <head>
-          <meta charset="UTF-8">
-          <title>Rendering #{req.path_info}</title>
-        </head>
-        <body>
-          <h1>Hold on while I render that page for you!</h1>
-        </body>
+          <!DOCTYPE HTML>
+          <html lang="en-US">
+          <head>
+            <meta charset="UTF-8">
+            <title>Rendering #{req.path_info}</title>
+          </head>
+          <body>
+            <h1>Hold on while I render that page for you!</h1>
+          </body>
         PAGE
 
-        headers ||= {}
+        headers = {}
         headers['Content-Length'] = response.bytesize.to_s
         headers['Content-Type'] = 'text/html'
         headers['Connection'] = 'keep-alive'
