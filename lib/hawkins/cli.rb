@@ -119,7 +119,7 @@ module Hawkins
       dest = Pathname.new(jekyll_config['destination']).relative_path_from(Pathname.new(Dir.pwd))
 
       # FIXME: Figure out how to turn off interactor
-      contents = <<-GUARDFILE.gsub(/^\s*/,'')
+      contents = <<-GUARDFILE.gsub(/^\s*/, '')
         # interactor :off
         notification :off
         guard 'hawkins',
@@ -134,7 +134,7 @@ module Hawkins
         end
       GUARDFILE
       Guard.start(:guardfile_contents => contents)
-      while Guard.running do
+      while Guard.running
         sleep 1
       end
     end

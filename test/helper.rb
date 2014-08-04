@@ -1,8 +1,10 @@
 require 'simplecov'
 
-module SimpleCov::Configuration
-  def clean_filters
-    @filters = []
+module SimpleCov
+  module Configuration
+    def clean_filters
+      @filters = []
+    end
   end
 end
 
@@ -29,7 +31,11 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'hawkins'
 
-class MiniTest::Unit::TestCase
+module MiniTest
+  module Unit
+    class TestCase
+    end
+  end
 end
 
 MiniTest::Unit.autorun

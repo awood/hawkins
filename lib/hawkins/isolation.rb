@@ -33,13 +33,15 @@ module Hawkins
         file = file_info(path)
         body = file[:body]
         time = file[:time]
-        hdrs = { 'Last-Modified'  => time }
+        hdrs = {'Last-Modified'  => time}
 
         if time == req.env['HTTP_IF_MODIFIED_SINCE']
           [304, hdrs, []]
         else
-          hdrs.update({ 'Content-length' => body.bytesize.to_s,
-                        'Content-Type' => mime, } )
+          hdrs.update(
+            'Content-length' => body.bytesize.to_s,
+            'Content-Type' => mime
+          )
           [200, hdrs, [body]]
         end
       else
@@ -98,7 +100,7 @@ module Hawkins
         body = "Not found"
         mime = "text/plain"
       end
-      return [404, {"Content-Type" => mime, "Content-length" => body.bytesize.to_s}, [body]]
+      [404, {"Content-Type" => mime, "Content-length" => body.bytesize.to_s}, [body]]
     end
 
     def mime(path_info)
@@ -116,4 +118,3 @@ module Hawkins
     end
   end
 end
-

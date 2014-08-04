@@ -16,6 +16,7 @@ require './lib/hawkins/version'
 require 'rake'
 require 'rake/testtask'
 require 'rdoc/task'
+require 'rubocop/rake_task'
 
 task :default => :test
 Rake::TestTask.new(:test) do |test|
@@ -38,3 +39,5 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
+RuboCop::RakeTask.new

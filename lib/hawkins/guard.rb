@@ -11,7 +11,7 @@ require 'thin'
 
 module Guard
   class Hawkins < Plugin
-    def initialize(options = {})
+    def initialize(options={})
       super
 
       default_extensions = ::Hawkins::DEFAULT_EXTENSIONS
@@ -64,11 +64,14 @@ module Guard
     def start
       build
       start_server
-      UI.info "#{@msg_prefix} " + "watching and serving at #{@config['host']}:#{@config['port']}#{@config['baseurl']}" unless @config[:silent]
+      return if @config[:silent]
+      msg = "#{@msg_prefix} "
+      msg += "watching and serving at #{@config['host']}:#{@config['port']}#{@config['baseurl']}"
+      UI.info(msg)
     end
 
     def reload
-      stop if !@server_thread.nil? and @server_thread.alive?
+      stop if !@server_thread.nil? && @server_thread.alive?
       reload_config!
       start
     end
@@ -118,86 +121,85 @@ module Guard
       end
     end
 
-
     private
-    def build(files = nil, message = '', mark = nil)
-      begin
-        UI.info "#{@msg_prefix} #{message}" + "building...".yellow unless @config[:silent]
-        if files
-          puts '| ' # spacing
-          files.each { |file| puts '|' + mark + file }
-          puts '| ' # spacing
-        end
-        elapsed = Benchmark.realtime { Jekyll::Site.new(@config).process }
-        UI.info "#{@msg_prefix} " + "build completed in #{elapsed.round(2)}s ".green + "#{@source} → #{@destination}" unless @config[:silent]
-      rescue Exception
-        UI.error "#{@msg_prefix} build has failed" unless @config[:silent]
+
+    def build(files=nil, message='', mark=nil)
+      UI.info "#{@msg_prefix} #{message}" + "building...".yellow unless @config[:silent]
+      if files
+        puts '| '
+        files.each { |file| puts '|' + mark + file }
+        puts '| '
+      end
+      elapsed = Benchmark.realtime { Jekyll::Site.new(@config).process }
+      unless @config[:silent]
+        msg = "#{@msg_prefix} " + "build completed in #{elapsed.round(2)}s ".green
+        msg += "#{@source} → #{@destination}"
+        UI.info(msg)
+      end
+      rescue
+        UI.error("#{@msg_prefix} build has failed") unless @config[:silent]
         stop_server
         throw :task_has_failed
-      end
     end
 
     # Copy static files to destination directory
     #
     def copy(files=[])
       files = ignore_stitch_sources files
-      if files.size > 0
-        begin
-          message = 'copied file'
-          message += 's' if files.size > 1
-          UI.info "#{@msg_prefix} #{message.green}" unless @config[:silent]
-          puts '| ' #spacing
-          files.each do |file|
-            path = destination_path file
-            FileUtils.mkdir_p(File.dirname(path))
-            FileUtils.cp(file, path)
-            puts '|' + "  → ".green + path
-          end
-          puts '| ' #spacing
-
-        rescue Exception
-          UI.error "#{@msg_prefix} copy has failed" unless @config[:silent]
-          UI.error e
-          stop_server
-          throw :task_has_failed
+      return false unless files.size > 0
+      begin
+        message = 'copied file'
+        message += 's' if files.size > 1
+        UI.info "#{@msg_prefix} #{message.green}" unless @config[:silent]
+        puts '| '
+        files.each do |file|
+          path = destination_path file
+          FileUtils.mkdir_p(File.dirname(path))
+          FileUtils.cp(file, path)
+          puts '|' + "  → ".green + path
         end
-        true
+        puts '| '
+
+      rescue
+        UI.error "#{@msg_prefix} copy has failed" unless @config[:silent]
+        UI.error e
+        stop_server
+        throw :task_has_failed
       end
+      true
     end
 
     # Remove deleted source file/directories from destination
     def remove(files=[])
       # Ensure at least one file still exists (other scripts may clean up too)
-      if files.select {|f| File.exist? f }.size > 0
-        begin
-          message = 'removed file'
-          message += 's' if files.size > 1
-          UI.info "#{@msg_prefix} #{message.red}" unless @config[:silent]
-          puts '| ' #spacing
+      return false unless files.select { |f| File.exist? f }.size > 0
+      begin
+        message = 'removed file'
+        message += 's' if files.size > 1
+        UI.info "#{@msg_prefix} #{message.red}" unless @config[:silent]
+        puts '| '
 
-          files.each do |file|
-            path = destination_path file
-            if File.exist? path
-              FileUtils.rm path
-              puts '|' + "  x ".red + path
-            end
-
-            dir = File.dirname path
-            if Dir[dir+'/*'].empty?
-              FileUtils.rm_r(dir)
-              puts '|' + "  x ".red + dir
-            end
+        files.each do |file|
+          path = destination_path file
+          if File.exist?(path)
+            FileUtils.rm(path)
+            puts '|' + "  x ".red + path
           end
-          puts '| ' #spacing
 
-        rescue Exception
-          UI.error "#{@msg_prefix} remove has failed" unless @config[:silent]
-          UI.error e
-          stop_server
-          throw :task_has_failed
+          dir = File.dirname(path)
+          next unless Dir[File.join(dir, '*')].empty?
+          FileUtils.rm_r(dir)
+          puts '|' + "  x ".red + dir
         end
-        true
+        puts '| '
+
+      rescue
+        UI.error "#{@msg_prefix} remove has failed" unless @config[:silent]
+        UI.error e
+        stop_server
+        throw :task_has_failed
       end
+      true
     end
 
     def jekyll_matches(paths)
@@ -205,7 +207,7 @@ module Guard
     end
 
     def non_jekyll_matches(paths)
-      paths.select { |file| !file.match(/^_/) and !file.match(@extensions) }
+      paths.select { |file| !file.match(/^_/) && !file.match(@extensions) }
     end
 
     def jekyll_config(options)
@@ -237,25 +239,21 @@ module Guard
       end
     end
 
-    def server(config)
-      Thread.new do
-        Thin::Server.start(@config['host'], @config['port'], :signals => false) do
-          require 'rack/livereload'
-          require 'hawkins/isolation'
-          use Rack::LiveReload,
-            :min_delay => 500,
-            :max_delay => 2000,
-            :no_swf => true,
-            :source => :vendored
-          run ::Hawkins::IsolationInjector.new
-        end
-      end
-      UI.info "#{@msg_prefix} running Rack" unless @config[:silent]
-    end
-
     def start_server
       if @server_thread.nil?
-        @server_thread = server(@config)
+        @server_thread = Thread.new do
+          Thin::Server.start(@config['host'], @config['port'], :signals => false) do
+            require 'rack/livereload'
+            require 'hawkins/isolation'
+            use Rack::LiveReload,
+                :min_delay => 500,
+                :max_delay => 2000,
+                :no_swf => true,
+                :source => :vendored
+            run ::Hawkins::IsolationInjector.new
+          end
+        end
+        UI.info "#{@msg_prefix} running Rack" unless @config[:silent]
       else
         UI.warning "#{@msg_prefix} using an old server thread!"
       end
