@@ -19,7 +19,6 @@ module Guard
       @options = {
         :extensions     => [],
         :config         => Jekyll::Configuration.new.config_files({}),
-        :thin_config    => nil,
         :drafts         => false,
         :future         => false,
         :config_hash    => nil,
@@ -28,8 +27,8 @@ module Guard
       }.merge(options)
 
       @config = load_config(@options)
-      @source = local_path @config['source']
-      @destination = local_path @config['destination']
+      @source = local_path(@config['source'])
+      @destination = local_path(@config['destination'])
       @msg_prefix = @options[:msg_prefix]
 
       # Convert array of extensions into a regex for matching file extensions

@@ -1,5 +1,3 @@
-#! /usr/bin/env ruby
-
 require 'pathname'
 require 'rack'
 require 'safe_yaml/load'
@@ -22,9 +20,7 @@ module Hawkins
       path = Pathname.new(req.path_info).relative_path_from(Pathname.new('/'))
       path = File.join(site_root, path.to_s)
 
-      if File.directory?(path)
-        path = File.join(path, "index.html")
-      end
+      path = File.join(path, "index.html") if File.directory?(path)
       path = Pathname.new(path).cleanpath.to_s
 
       files = Dir[File.join(site_root, "**/*")]
@@ -33,7 +29,7 @@ module Hawkins
         file = file_info(path)
         body = file[:body]
         time = file[:time]
-        hdrs = {'Last-Modified'  => time}
+        hdrs = {'Last-Modified' => time}
 
         if time == req.env['HTTP_IF_MODIFIED_SINCE']
           [304, hdrs, []]
