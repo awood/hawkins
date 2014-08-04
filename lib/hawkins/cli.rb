@@ -60,6 +60,8 @@ module Hawkins
       subdirectories so this command operates on the basename of all files
       that match the file or glob you provide.
     LONGDESC
+    option :future, :type => :boolean, :default => false, :desc => "publish future dated posts"
+    option :drafts, :type => :boolean, :default => false, :desc => "publish draft posts"
     def isolate(*files)
       SafeYAML::OPTIONS[:default_mode] = :safe
 
@@ -102,13 +104,15 @@ module Hawkins
       create_file(Hawkins::ISOLATION_FILE, YAML.dump(isolation_config))
 
       begin
-        serve
+        invoke(:serve, [], options)
       ensure
         remove_file(Hawkins::ISOLATION_FILE)
       end
     end
 
     desc "serve", "render and serve the site"
+    option :future, :type => :boolean, :default => false, :desc => "publish future dated posts"
+    option :drafts, :type => :boolean, :default => false, :desc => "publish draft posts"
     def serve
       config_files = jekyll_config.config_files({}) || []
       if File.exist?(Hawkins::ISOLATION_FILE)
@@ -123,7 +127,9 @@ module Hawkins
         # interactor :off
         notification :off
         guard 'hawkins',
-          :config => #{config_files} do
+          :config => #{config_files},
+          :drafts => #{options[:drafts]},
+          :future => #{options[:future]} do
           watch %r{.*}
           ignore %r{^#{dest}}
         end
