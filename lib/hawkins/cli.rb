@@ -39,12 +39,12 @@ module Hawkins
       create_file(path_to(dest, filename), content)
 
       case options[:editor]
-        when /g?vim/
-          editor_args = "+"
-        when /x?emacs/
-          editor_args = "+#{content.lines.count}"
-        else
-          editor_args = nil
+      when /g?vim/
+        editor_args = "+"
+      when /x?emacs/
+        editor_args = "+#{content.lines.count}"
+      else
+        editor_args = nil
       end
 
       exec(*[options[:editor], editor_args, path_to(dest, filename)].compact)

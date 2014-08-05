@@ -1,5 +1,3 @@
-CaseIndentation:
-  IndentOneStep: true
 ClassLength:
   # It's not worth bending over backwards to avoid long classes.
   Enabled: false
