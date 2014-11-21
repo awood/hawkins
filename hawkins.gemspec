@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency("guard")
+  spec.add_runtime_dependency("guard", "~> 2.8")
   spec.add_runtime_dependency("guard-livereload")
   spec.add_runtime_dependency("jekyll", "~> 2.0.0")
   spec.add_runtime_dependency("rack")

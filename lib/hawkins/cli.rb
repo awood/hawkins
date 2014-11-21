@@ -122,9 +122,8 @@ module Hawkins
       # By default Jekyll uses the absolute path and Guard doesn't so we need to fix that.
       dest = Pathname.new(jekyll_config['destination']).relative_path_from(Pathname.new(Dir.pwd))
 
-      # FIXME: Figure out how to turn off interactor
       contents = <<-GUARDFILE.gsub(/^\s*/, '')
-        # interactor :off
+        interactor :off
         notification :off
         guard 'hawkins',
           :config => #{config_files},
@@ -140,9 +139,6 @@ module Hawkins
         end
       GUARDFILE
       Guard.start(:guardfile_contents => contents)
-      while Guard.running
-        sleep 1
-      end
     end
 
     # Methods in the no_tasks block are not exposed to users
