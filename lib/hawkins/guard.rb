@@ -30,6 +30,7 @@ module Guard
       @source = local_path(@config['source'])
       @destination = local_path(@config['destination'])
       @msg_prefix = @options[:msg_prefix]
+      @app_prefix = 'Hawkins'
 
       # Convert array of extensions into a regex for matching file extensions
       # E.g. /\.md$|\.markdown$|\.html$/i
@@ -64,7 +65,7 @@ module Guard
       build
       start_server
       return if @config[:silent]
-      msg = "#{@msg_prefix} "
+      msg = "#{@app_prefix} "
       msg += "watching and serving at #{@config['host']}:#{@config['port']}#{@config['baseurl']}"
       UI.info(msg)
     end
@@ -219,6 +220,7 @@ module Guard
       Jekyll.configuration(config)
     end
 
+    # TODO Use Pathname.relative_path_from or similar here
     def local_path(path)
       Dir.chdir('.')
       current = Dir.pwd
@@ -252,9 +254,9 @@ module Guard
             run ::Hawkins::IsolationInjector.new
           end
         end
-        UI.info "#{@msg_prefix} running Rack" unless @config[:silent]
+        UI.info "#{@app_prefix} running Rack" unless @config[:silent]
       else
-        UI.warning "#{@msg_prefix} using an old server thread!"
+        UI.warning "#{@app_prefix} using an old server thread!"
       end
     end
 
