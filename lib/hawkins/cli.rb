@@ -7,6 +7,10 @@ module Hawkins
 
     attr_accessor :jekyll_config
 
+    def self.exit_on_failure?
+      true
+    end
+
     def initialize(*args)
       super
       Jekyll.logger.log_level = :warn
@@ -21,8 +25,7 @@ module Hawkins
       begin
         date = Date.parse(options[:date])
       rescue
-        say_status(:error, "Could not parse '#{options[:date]}'", :red)
-        exit 1
+        fail(Thor::InvocationError, "ERROR: Could not parse '#{options[:date]}' as a date")
       end
       slug = title.to_url
       dest = path_to(:_posts)
