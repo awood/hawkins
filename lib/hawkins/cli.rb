@@ -25,6 +25,9 @@ module Hawkins
       begin
         date = Date.parse(options[:date])
       rescue
+        # If an exception is not descended from the Thor::Error class, Thor
+        # prints the stacktrace.  We don't want a stacktrace in this instance,
+        # so we lie and use one of Thor's error classes in the call to fail().
         fail(Thor::InvocationError, "ERROR: Could not parse '#{options[:date]}' as a date")
       end
       slug = title.to_url
