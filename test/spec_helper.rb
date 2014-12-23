@@ -52,11 +52,8 @@ end
 
 RSpec.configure do |config|
   config.color = true
-  config.mock_framework = :mocha
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
   config.include SpecUtils
 end
-
-

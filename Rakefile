@@ -24,6 +24,7 @@ begin
     t.pattern = "test/**/*.rb"
   end
   task :default => :spec
+  task :test => :spec
 rescue LoadError
 end
 

@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency("mocha")
   spec.add_development_dependency("rspec-core")
   spec.add_development_dependency("rspec-expectations")
+  spec.add_development_dependency("rspec-mocks")
   spec.add_development_dependency("rake")
   spec.add_development_dependency("rdoc", "~> 3.12")
   # Rubocop can issue new releases with new checks which can result
