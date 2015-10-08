@@ -1,3 +1,5 @@
+test/resources/test_site/_site
+
 # rcov generated
 coverage
 coverage.data
