@@ -87,7 +87,7 @@ module Guard
 
     def run_on_modifications(paths)
       # At this point we know @options[:config] is going to be an Array
-      # thanks to the call the jekyll_config earlier.
+      # thanks to the call to jekyll_config earlier.
       reload_config! if @options[:config].map { |f| paths.include?(f) }.any?
       matched = jekyll_matches paths
       unmatched = non_jekyll_matches paths

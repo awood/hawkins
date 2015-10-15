@@ -1,5 +1,7 @@
 require 'jekyll'
 require 'guard'
+require 'guard/runner'
+require 'listen'
 
 module Hawkins
   class Cli < Thor
@@ -144,11 +146,36 @@ module Hawkins
           watch %r{.*}
         end
       GUARDFILE
-      Guard.start(:guardfile_contents => contents)
+      guard_start(contents)
     end
 
     # Methods in the no_tasks block are not exposed to users
     no_tasks do
+      def guard_start(guardfile_contents)
+        Guard.setup(:guardfile_contents => guardfile_contents)
+        Guard::Runner.new.run(:start)
+        Guard.listener.start
+
+        exitcode = 0
+        begin
+          while Guard.interactor.foreground != :exit
+            Guard.queue.process while Guard.queue.pending?
+          end
+        rescue Interrupt
+        rescue SystemExit => e
+          exitcode = e.status
+        end
+
+        guard_stop
+        exitcode
+      end
+
+      def guard_stop
+        Guard.listener.stop
+        Guard.interactor.background
+        Guard::Runner.new.run(:stop)
+      end
+
       def self.source_root
         File.expand_path("..", File.dirname(__FILE__))
       end

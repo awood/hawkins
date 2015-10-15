@@ -8,6 +8,14 @@ module Hawkins
         allow_any_instance_of(Jekyll::Configuration).to receive(:read_config_files).and_return(default_config)
       end
 
+      let(:date) do
+        Time.now.strftime('%Y-%m-%d')
+      end
+
+      let(:cli_spy) do
+        spy('Cli')
+      end
+
       it 'fails on a bad post date' do
         _, err = capture_io do
           expect do
@@ -37,7 +45,6 @@ module Hawkins
         ---
         BODY
         expected_file="_posts/1999-12-31-#{title.to_url}.md"
-        cli_spy = spy('Cli')
         # Required to keep Thor from printing warning about undescribed commands.
         cli_spy.no_commands do
           expect(cli_spy).to receive(:empty_directory)
@@ -55,9 +62,7 @@ module Hawkins
         title: #{title}
         ---
         BODY
-        date = Time.now.strftime('%Y-%m-%d')
         expected_file="_posts/#{date}-#{title.to_url}.md"
-        cli_spy = spy('Cli')
         cli_spy.no_commands do
           expect(cli_spy).to receive(:empty_directory)
           expect(cli_spy).to receive(:create_file).with(expected_file, expected_body)
@@ -69,9 +74,7 @@ module Hawkins
 
       it 'uses a provided editor' do
         title = "Little Red Corvette"
-        date = Time.now.strftime('%Y-%m-%d')
         expected_file="_posts/#{date}-#{title.to_url}.md"
-        cli_spy = spy('Cli')
         cli_spy.no_commands do
           expect(cli_spy).to receive(:empty_directory)
           expect(cli_spy).to receive(:create_file).with(expected_file, expected_body)
@@ -83,11 +86,9 @@ module Hawkins
 
       it 'uses the editor from the environment' do
         title = "Let's Go Crazy"
-        date = Time.now.strftime('%Y-%m-%d')
         expected_file="_posts/#{date}-#{title.to_url}.md"
 
         stub_const("ENV", ENV.to_h.tap { |h| h['VISUAL'] = 'default' })
-        cli_spy = spy('Cli')
         cli_spy.no_commands do
           expect(cli_spy).to receive(:empty_directory)
           expect(cli_spy).to receive(:create_file)
@@ -99,12 +100,10 @@ module Hawkins
 
       it 'sets correct vim options' do
         title = "When Doves Cry"
-        date = Time.now.strftime('%Y-%m-%d')
         expected_file="_posts/#{date}-#{title.to_url}.md"
 
         ['gvim', 'vim'].each do |editor|
           stub_const("ENV", ENV.to_h.tap { |h| h['VISUAL'] = editor })
-          cli_spy = spy('Cli')
           cli_spy.no_commands do
             expect(cli_spy).to receive(:empty_directory)
             expect(cli_spy).to receive(:create_file)
@@ -117,12 +116,10 @@ module Hawkins
 
       it 'sets correct emacs options' do
         title = "Purple Rain"
-        date = Time.now.strftime('%Y-%m-%d')
         expected_file="_posts/#{date}-#{title.to_url}.md"
 
         ['xemacs', 'emacs'].each do |editor|
           stub_const("ENV", ENV.to_h.tap { |h| h['VISUAL'] = editor })
-          cli_spy = spy('Cli')
           cli_spy.no_commands do
             expect(cli_spy).to receive(:empty_directory)
             expect(cli_spy).to receive(:create_file)
