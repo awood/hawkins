@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version = Hawkins::VERSION
   spec.authors = ["Alex Wood"]
   spec.email = ["awood@redhat.com"]
-  spec.summary = "A Jekyll extension that adds in Live Reload and page isolation"
+  spec.summary = "A Jekyll extension that adds in Live Reload"
   spec.homepage = "http://github.com/awood/hawkins"
   spec.license = "MIT"
 

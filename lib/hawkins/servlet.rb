@@ -3,62 +3,62 @@ require "webrick"
 module Hawkins
   module Commands
     class LiveServe
+      class SkipAnalyzer
+        BAD_USER_AGENTS = [ %r{MSIE} ]
+
+        def self.skip_processing?(req, res, options)
+          new(req, res, options).skip_processing?
+        end
+
+        def initialize(req, res, options)
+          @options = options
+          @req = req
+          @res = res
+        end
+
+        def skip_processing?
+          !html? || chunked? || inline? || ignored? || bad_browser?
+        end
+
+        def chunked?
+          @res['Transfer-Encoding'] == 'chunked'
+        end
+
+        def inline?
+          @res['Content-Disposition'] =~ %r{^inline}
+        end
+
+        def ignored?
+          path = @req.query_string.nil? ? @req.path_info : "#{@req.path_info}?#{@req.query_string}"
+          @options["ignore"] and @options["ignore"].any? { |filter| path[filter] }
+        end
+
+        def bad_browser?
+          BAD_USER_AGENTS.any? { |pattern| @req['User-Agent'] =~ pattern }
+        end
+
+        def html?
+          @res['Content-Type'] =~ %r{text/html}
+        end
+      end
+
       class BodyProcessor
-        LIVERELOAD_JS_PATH = '/__rack/livereload.js'
+        LIVERELOAD_JS_PATH = '/__livereload/livereload.js'
         HEAD_TAG_REGEX = /<head>|<head[^(er)][^<]*>/
         LIVERELOAD_PORT = 35729
 
         attr_reader :content_length, :new_body, :livereload_added
 
-        def protocol
-          @options[:protocol] || "http"
-        end
-
-        def livereload_local_uri
-          "#{protocol}://localhost:#{@options[:live_reload_port]}/livereload.js"
-        end
-
         def initialize(body, options)
-          @body, @options = body, options
-          @options[:live_reload_port] ||= LIVERELOAD_PORT
+          @body = body
+          @options = options
+          @options["reload_port"] ||= LIVERELOAD_PORT
 
           @processed = false
         end
 
-        def force_swf?
-          @options[:force_swf]
-        end
-
         def with_swf?
-          !@options[:no_swf]
-        end
-
-        def use_vendored?
-          return @use_vendored if @use_vendored
-
-          if @options[:source]
-            @use_vendored = (@options[:source] == :vendored)
-          else
-            require 'net/http'
-            require 'uri'
-
-            uri = URI.parse(livereload_local_uri)
-
-            http = Net::HTTP.new(uri.host, uri.port)
-            http.read_timeout = 1
-
-            begin
-              http.send_request('GET', uri.path)
-              @use_vendored = false
-            rescue ::Timeout::Error, Errno::ECONNREFUSED, EOFError, IOError
-              @use_vendored = true
-            rescue => e
-              $stderr.puts e.inspect
-              raise e
-            end
-          end
-
-          @use_vendored
+          @options["swf"]
         end
 
         def processed?
@@ -70,6 +70,7 @@ module Hawkins
           begin
             @body.each { |line| @new_body << line.to_s }
           ensure
+            #@body will be a File object
             @body.close
           end
 
@@ -89,28 +90,22 @@ module Hawkins
           @new_body = @new_body.join
         end
 
-        def app_root
-          ENV['RAILS_RELATIVE_URL_ROOT'] || ''
-        end
-
         def host_to_use
-          (@options[:host] || 'localhost').gsub(%r{:.*}, '')
+          (@options["host"] || 'localhost').gsub(%r{:.*}, '')
         end
 
         def template
           template = <<-TEMPLATE
           <% if with_swf? %>
             <script type="text/javascript">
-              WEB_SOCKET_SWF_LOCATION = "/__rack/WebSocketMain.swf";
-              <% if force_swf? %>
-                WEB_SOCKET_FORCE_FLASH = true;
-              <% end %>
+              WEB_SOCKET_SWF_LOCATION = "/__livereload/WebSocketMain.swf";
+              WEB_SOCKET_FORCE_FLASH = false;
             </script>
-            <script type="text/javascript" src="<%= app_root %>/__rack/swfobject.js"></script>
-            <script type="text/javascript" src="<%= app_root %>/__rack/web_socket.js"></script>
+            <script type="text/javascript" src="<%= @options["baseurl"] %>/__livereload/swfobject.js"></script>
+            <script type="text/javascript" src="<%= @options["baseurl"] %>/__livereload/web_socket.js"></script>
           <% end %>
           <script type="text/javascript">
-            RACK_LIVERELOAD_PORT = <%= @options[:live_reload_port] %>;
+            RACK_LIVERELOAD_PORT = <%= @options["reload_port"] %>;
           </script>
           <script type="text/javascript" src="<%= livereload_source %>"></script>
           TEMPLATE
@@ -118,16 +113,10 @@ module Hawkins
         end
 
         def livereload_source
-          if use_vendored?
-            src = "#{app_root}#{LIVERELOAD_JS_PATH.dup}?host=#{host_to_use}"
-          else
-            src = livereload_local_uri.dup.gsub('localhost', host_to_use) + '?'
-          end
-
-          src << "&amp;mindelay=#{@options[:min_delay]}" if @options[:min_delay]
-          src << "&amp;maxdelay=#{@options[:max_delay]}" if @options[:max_delay]
-          src << "&amp;port=#{@options[:port]}" if @options[:port]
-
+          src = "#{@options['baseurl']}#{LIVERELOAD_JS_PATH.dup}?host=#{host_to_use}"
+          src << "&amp;mindelay=#{@options["min_delay"]}" if @options["min_delay"]
+          src << "&amp;maxdelay=#{@options["max_delay"]}" if @options["max_delay"]
+          src << "&amp;port=#{@options["reload_port"]}" if @options["reload_port"]
           src
         end
       end
@@ -158,7 +147,9 @@ module Hawkins
           rtn = super
           validate_and_ensure_charset(req, res)
           res.header.merge!(@headers)
-          processor = BodyProcessor.new(res.body, {})
+          return rtn if SkipAnalyzer.skip_processing?(req, res, @jekyll_opts)
+
+          processor = BodyProcessor.new(res.body, @jekyll_opts)
           processor.process!
           res.body = processor.new_body
           res.content_length = processor.content_length.to_s

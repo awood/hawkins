@@ -10,6 +10,12 @@ module Hawkins
           "ssl_key"  => ["--ssl-key [KEY]", "X.509 (SSL) Private Key."],
           "port"     => ["-P", "--port [PORT]", "Port to listen on"],
           "baseurl"  => ["-b", "--baseurl [URL]", "Base URL"],
+          "swf"      => ["--swf", "Use Flash for WebSockets support"],
+          # TODO Should probably only accept fnmatch-esque strings and convert them to regexs
+          "ignore"   => ["--ignore [REGEX]", "Files not to reload"],
+          "min_delay" => ["--min-delay [SECONDS]", "Minimum reload delay"],
+          "max_delay" => ["--max-delay [SECONDS]", "Maximum reload delay"],
+          "reload_port" => ["--reload-port [PORT]", "Port for LiveReload to listen on"],
           "skip_initial_build" => ["skip_initial_build", "--skip-initial-build",
             "Skips the initial site build which occurs before the server is started."]
         }
@@ -25,7 +31,7 @@ module Hawkins
 
             add_build_options(cmd)
             COMMAND_OPTIONS.each do |key, val|
-              cmd.option key, *val
+              cmd.option(key, *val)
             end
 
             cmd.action do |_, opts|
@@ -45,7 +51,7 @@ module Hawkins
           server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
           livereload_files = File.expand_path("../../js/",File.dirname(__FILE__))
-          server.mount("/__rack", WEBrick::HTTPServlet::FileHandler, livereload_files)
+          server.mount("#{opts['baseurl']}/__livereload", WEBrick::HTTPServlet::FileHandler, livereload_files)
 
           server.mount(opts["baseurl"], Servlet, destination, file_handler_opts)
 
