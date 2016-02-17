@@ -43,7 +43,6 @@ module Hawkins
       end
 
       class BodyProcessor
-        LIVERELOAD_JS_PATH = '/__livereload/livereload.js'
         HEAD_TAG_REGEX = /<head>|<head[^(er)][^<]*>/
 
         attr_reader :content_length, :new_body, :livereload_added
@@ -110,7 +109,10 @@ module Hawkins
         end
 
         def livereload_source
-          src = "#{@options['baseurl']}#{LIVERELOAD_JS_PATH.dup}?host=#{host_to_use}"
+          # TODO get SSL working
+          # use_ssl = @options["ssl_cert"] && @options["ssl_key"]
+          protocol = "http"
+          src = "#{protocol}://#{host_to_use}:#{@options['reload_port']}/livereload.js?host=#{host_to_use}"
           src << "&amp;mindelay=#{@options["min_delay"]}" if @options["min_delay"]
           src << "&amp;maxdelay=#{@options["max_delay"]}" if @options["max_delay"]
           src << "&amp;port=#{@options["reload_port"]}" if @options["reload_port"]
