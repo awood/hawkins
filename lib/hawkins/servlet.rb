@@ -45,15 +45,12 @@ module Hawkins
       class BodyProcessor
         LIVERELOAD_JS_PATH = '/__livereload/livereload.js'
         HEAD_TAG_REGEX = /<head>|<head[^(er)][^<]*>/
-        LIVERELOAD_PORT = 35729
 
         attr_reader :content_length, :new_body, :livereload_added
 
         def initialize(body, options)
           @body = body
           @options = options
-          @options["reload_port"] ||= LIVERELOAD_PORT
-
           @processed = false
         end
 

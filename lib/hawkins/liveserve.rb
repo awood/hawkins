@@ -15,10 +15,12 @@ module Hawkins
           "ignore"   => ["--ignore [REGEX]", "Files not to reload"],
           "min_delay" => ["--min-delay [SECONDS]", "Minimum reload delay"],
           "max_delay" => ["--max-delay [SECONDS]", "Maximum reload delay"],
-          "reload_port" => ["--reload-port [PORT]", "Port for LiveReload to listen on"],
+          "reload_port" => ["--reload-port [PORT]", Integer, "Port for LiveReload to listen on"],
           "skip_initial_build" => ["skip_initial_build", "--skip-initial-build",
             "Skips the initial site build which occurs before the server is started."]
         }
+
+        LIVERELOAD_PORT = 35729
 
         #
 
@@ -35,8 +37,14 @@ module Hawkins
             end
 
             cmd.action do |_, opts|
+              # TODO need to figure out how to set defaults correctly
+              opts["reload_port"] ||= LIVERELOAD_PORT
+              opts["host"] ||= "localhost"
+
               opts["serving"] = true
               opts["watch"  ] = true unless opts.key?("watch")
+              reload_reactor = LiveReloadReactor.new(opts)
+              reload_reactor.start
               Jekyll::Commands::Build.process(opts)
               LiveServe.process(opts)
             end
@@ -50,8 +58,7 @@ module Hawkins
 
           server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
-          livereload_files = File.expand_path("../../js/",File.dirname(__FILE__))
-          server.mount("#{opts['baseurl']}/__livereload", WEBrick::HTTPServlet::FileHandler, livereload_files)
+          server.mount("#{opts['baseurl']}/__livereload", WEBrick::HTTPServlet::FileHandler, LIVERELOAD_FILES)
 
           server.mount(opts["baseurl"], Servlet, destination, file_handler_opts)
 
