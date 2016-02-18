@@ -59,7 +59,7 @@ module Hawkins
           server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
           server.mount("#{opts['baseurl']}/__livereload", WEBrick::HTTPServlet::FileHandler, LIVERELOAD_DIR)
-          server.mount(opts["baseurl"], Servlet, destination, file_handler_opts)
+          server.mount(opts["baseurl"], ReloadServlet, destination, file_handler_opts)
 
           Jekyll.logger.info "Server address:", server_address(server, opts)
           launch_browser server, opts if opts["open_url"]
