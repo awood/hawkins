@@ -112,7 +112,13 @@ module Hawkins
           # TODO get SSL working
           # use_ssl = @options["ssl_cert"] && @options["ssl_key"]
           protocol = "http"
-          src = "#{protocol}://#{host_to_use}:#{@options['reload_port']}/livereload.js?host=#{host_to_use}"
+
+          # Unclear what "snipver" does.  https://github.com/livereload/livereload-js states
+          # that the recommended setting is 1.
+          src = "#{protocol}://#{host_to_use}:#{@options['reload_port']}/livereload.js?snipver=1"
+
+          # XHTML standard requires ampersands to be encoded as entities when in attributes
+          # See http://stackoverflow.com/a/2190292
           src << "&amp;mindelay=#{@options["min_delay"]}" if @options["min_delay"]
           src << "&amp;maxdelay=#{@options["max_delay"]}" if @options["max_delay"]
           src << "&amp;port=#{@options["reload_port"]}" if @options["reload_port"]
