@@ -106,7 +106,7 @@ module Hawkins
           </script>
           <script type="text/javascript" src="<%= livereload_source %>"></script>
           TEMPLATE
-          ERB.new(template)
+          ERB.new(Jekyll::Utils.strip_heredoc(template))
         end
 
         def livereload_source
