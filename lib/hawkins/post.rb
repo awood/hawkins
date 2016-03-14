@@ -1,4 +1,3 @@
-
 module Hawkins
   module Commands
     class Post < Jekyll::Command
@@ -15,63 +14,67 @@ module Hawkins
             c.syntax("new [options]")
             c.description("create a new post")
             c.action do |args, options|
-              options["date"] ||= Time.now.to_s
-              options["editor"] ||= ENV['VISUAL'] || ENV['EDITOR'] || 'vi'
-              begin
-                date = Date.parse(options["date"])
-              rescue
-                Jekyll.logger.abort_with("Could not convert #{options['date']} into date format.")
-              end
-
-              if args.length != 1
-                Jekyll.logger.abort_with(
-                  "Please provide one argument to use as the post title.  Remember to quote multiword strings.")
-              else
-                title = args[0]
-              end
-
-              slug = Jekyll::Utils.slugify(title)
-
-              site_opts = configuration_from_options(options)
-              site = Jekyll::Site.new(site_opts)
-              posts = site.in_source_dir('_posts')
-              filename = File.join(posts, "#{date.strftime('%Y-%m-%d')}-#{slug}.md")
-
-              #TODO incorporate Highline and allow users to elect to create the directory
-              # Like Thor does
-              unless File.exist?(posts)
-                Jekyll.logger.abort_with("#{posts} does not exist.  Please create it.")
-              end
-
-              # TODO ask if user wishes to overwrite
-              if File.exist?(filename)
-                Jekyll.logger.abort_with("#{filename} already exists.  Cowardly refusing to overwrite it.")
-              end
-
-              content = <<-CONTENT
-                ---
-                title: #{title}
-                ---
-              CONTENT
-
-              File.open(filename, 'w') do |f|
-                f.write(Jekyll::Utils.strip_heredoc(content))
-              end
-
-              Jekyll.logger.info("Wrote #{filename}")
-
-              case options["editor"]
-              when /g?vim/
-                editor_args = "+"
-              when /x?emacs/
-                editor_args = "+#{content.lines.count}"
-              else
-                editor_args = nil
-              end
-
-              exec(*[options["editor"], editor_args, filename].compact)
+              Hawkins::Commands::Post.create(args, options)
             end
           end
+        end
+
+        def create(args, options)
+          options["date"] ||= Time.now.to_s
+          options["editor"] ||= ENV['VISUAL'] || ENV['EDITOR'] || 'vi'
+          begin
+            date = Date.parse(options["date"])
+          rescue
+            Jekyll.logger.abort_with("Could not convert #{options['date']} into date format.")
+          end
+
+          if args.length != 1
+            Jekyll.logger.abort_with(
+              "Please provide one argument to use as the post title.  Remember to quote multiword strings.")
+          else
+            title = args[0]
+          end
+
+          slug = Jekyll::Utils.slugify(title)
+
+          site_opts = configuration_from_options(options)
+          site = Jekyll::Site.new(site_opts)
+          posts = site.in_source_dir('_posts')
+          filename = File.join(posts, "#{date.strftime('%Y-%m-%d')}-#{slug}.md")
+
+          #TODO incorporate Highline and allow users to elect to create the directory
+          # Like Thor does
+          unless File.exist?(posts)
+            Jekyll.logger.abort_with("#{posts} does not exist.  Please create it.")
+          end
+
+          # TODO ask if user wishes to overwrite
+          if File.exist?(filename)
+            Jekyll.logger.abort_with("#{filename} already exists.  Cowardly refusing to overwrite it.")
+          end
+
+          content = <<-CONTENT
+            ---
+            title: #{title}
+            ---
+          CONTENT
+
+          File.open(filename, 'w') do |f|
+            f.write(Jekyll::Utils.strip_heredoc(content))
+          end
+
+          Jekyll.logger.info("Wrote #{filename}")
+
+          case options["editor"]
+          when /g?vim/
+            editor_args = "+"
+          when /x?emacs/
+            editor_args = "+#{content.lines.count}"
+          else
+            editor_args = nil
+          end
+
+          exec(*[options["editor"], editor_args, filename].compact)
         end
       end
     end

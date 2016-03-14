@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency("rspec-mocks")
   spec.add_development_dependency("rake")
   spec.add_development_dependency("rdoc", "~> 3.12")
+  spec.add_development_dependency("pry-byebug")
   # Rubocop can issue new releases with new checks which can result
   # in errors we don't want.  We'll manage the version very strictly.
   spec.add_development_dependency("rubocop", "= 0.24.1")
