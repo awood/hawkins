@@ -27,4 +27,5 @@ Gemfile.lock
 
 # For vim:
 *.swp
+*.swo
 tags

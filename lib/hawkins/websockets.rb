@@ -35,7 +35,7 @@ module Hawkins
             close_connection_after_writing
           end
         else
-          body = "This port only serves livereload.js over HTTP"
+          body = "This port only serves livereload.js over HTTP.\n"
           headers = [
             'HTTP/1.1 400 Bad Request',
             'Content-Type: text/plain',

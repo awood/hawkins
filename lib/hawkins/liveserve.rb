@@ -1,3 +1,5 @@
+require 'thread'
+
 module Hawkins
   module Commands
     class LiveServe < Jekyll::Command
@@ -34,12 +36,17 @@ module Hawkins
 
               opts["serving"] = true
               opts["watch"  ] = true unless opts.key?("watch")
-              reload_reactor = LiveReloadReactor.new(opts)
-              reload_reactor.start
-              Jekyll::Commands::Build.process(opts)
-              LiveServe.process(opts)
+              start(opts)
             end
           end
+        end
+
+        def start(opts)
+          @running = Queue.new
+          reload_reactor = LiveReloadReactor.new(opts)
+          reload_reactor.start
+          Jekyll::Commands::Build.process(opts)
+          LiveServe.process(opts)
         end
 
         def process(opts)
@@ -55,6 +62,10 @@ module Hawkins
           Jekyll.logger.info "Server address:", server_address(server, opts)
           launch_browser server, opts if opts["open_url"]
           boot_or_detach server, opts
+        end
+
+        def running?
+          return !(@running.nil? || @running.empty?)
         end
 
         # Do a base pre-setup of WEBRick so that everything is in place
@@ -195,6 +206,7 @@ module Hawkins
           unless detached
             proc do
               Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
+              @running << '.'
             end
           end
         end

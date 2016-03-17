@@ -1,3 +1,7 @@
+AbcSize:
+  Enabled: false
+AlignParameters:
+  EnforcedStyle: with_fixed_indentation
 ClassLength:
   # It's not worth bending over backwards to avoid long classes.
   Enabled: false
@@ -7,10 +11,14 @@ CollectionMethods:
     reduce: 'inject'
     detect: 'find'
     find_all: 'select'
+ConditionalAssignment:
+  Enabled: false
 CyclomaticComplexity:
   Enabled: false
 Documentation:
   # TODO: We need to add a bunch of docs before we can enable this.
+  Enabled: false
+GuardClause:
   Enabled: false
 HashSyntax:
   EnforcedStyle: hash_rockets
@@ -25,8 +33,12 @@ MethodLength:
 ModuleFunction:
   # The module_function declaration makes methods private so it means you can't use the module as a module.
   Enabled: false
+NumericLiterals:
+  Enabled: false
 ParenthesesAroundCondition:
   AllowSafeAssignment: false
+PerceivedComplexity:
+  Enabled: false
 PerlBackrefs:
   Enabled: false
 RaiseArgs:
@@ -40,15 +52,15 @@ SignalException:
 SpaceAroundEqualsInParameterDefault:
   EnforcedStyle: no_space
 SpaceInsideHashLiteralBraces:
-  EnforcedStyle: no_space
+  EnforcedStyle: space
 StringLiterals:
   # They say to not use double quoted strings unless there is interpolation.
   # While this gives a marginal parse time speedup, it makes working with
   # strings annoying.
   Enabled: false
-TrailingComma:
-  Enabled: true
-UnneededPercentX:
+TrailingCommaInArguments:
   Enabled: false
+TrailingCommaInLiteral:
+  EnforcedStyleForMultiline: comma
 WhileUntilModifier:
   Enabled: false
