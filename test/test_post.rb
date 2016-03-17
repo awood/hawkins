@@ -1,5 +1,4 @@
 require_relative './spec_helper'
-require 'hawkins/post'
 
 module Hawkins
   RSpec.describe "Hawkins" do
