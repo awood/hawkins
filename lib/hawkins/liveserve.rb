@@ -3,22 +3,13 @@ module Hawkins
     class LiveServe < Jekyll::Command
       class << self
         COMMAND_OPTIONS = {
-          "ssl_cert" => ["--ssl-cert [CERT]", "X.509 (SSL) certificate."],
-          "host"     => ["host", "-H", "--host [HOST]", "Host to bind to"],
-          "open_url" => ["-o", "--open-url", "Launch your browser with your site."],
-          "detach"   => ["-B", "--detach", "Run the server in the background (detach)"],
-          "ssl_key"  => ["--ssl-key [KEY]", "X.509 (SSL) Private Key."],
-          "port"     => ["-P", "--port [PORT]", "Port to listen on"],
-          "baseurl"  => ["-b", "--baseurl [URL]", "Base URL"],
           "swf"      => ["--swf", "Use Flash for WebSockets support"],
           # TODO Should probably only accept fnmatch-esque strings and convert them to regexs
           "ignore"   => ["--ignore [REGEX]", "Files not to reload"],
           "min_delay" => ["--min-delay [SECONDS]", "Minimum reload delay"],
           "max_delay" => ["--max-delay [SECONDS]", "Maximum reload delay"],
           "reload_port" => ["--reload-port [PORT]", Integer, "Port for LiveReload to listen on"],
-          "skip_initial_build" => ["skip_initial_build", "--skip-initial-build",
-            "Skips the initial site build which occurs before the server is started."]
-        }
+        }.merge(Jekyll::Commands::Serve.singleton_class::COMMAND_OPTIONS)
 
         LIVERELOAD_PORT = 35729
 
