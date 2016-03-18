@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency("rspec-core")
   spec.add_development_dependency("rspec-expectations")
   spec.add_development_dependency("rspec-mocks")
+  spec.add_development_dependency("fuubar")
   spec.add_development_dependency("rake")
   spec.add_development_dependency("rdoc", "~> 3.12")
   spec.add_development_dependency("pry-byebug")

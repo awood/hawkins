@@ -16,18 +16,14 @@ require './lib/hawkins/version'
 require 'rake'
 require 'rdoc/task'
 require 'rubocop/rake_task'
+require 'rspec/core/rake_task'
 
-begin
-  require 'rspec/core/rake_task'
-  RSpec::Core::RakeTask.new(:spec, :tag) do |t, task_args|
-    t.rspec_opts = "--tag #{task_args[:tag]}" if task_args.key?(:tag)
-    t.pattern = "test/**/*.rb"
-  end
-  task :default => :spec
-  task :test => :spec
-rescue LoadError
-  $stderr.puts "Couldn't load rspec rake task"
+RSpec::Core::RakeTask.new(:spec, :tag) do |t, task_args|
+  t.rspec_opts = "--tag #{task_args[:tag]}" if task_args.key?(:tag)
+  t.pattern = "test/**/*.rb"
 end
+task :default => :spec
+task :test => :spec
 
 desc "Code coverage detail"
 task :simplecov do
@@ -44,4 +40,10 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-RuboCop::RakeTask.new
+RuboCop::RakeTask.new do |task|
+  task.formatters = ['fuubar']
+  task.options = ['-D']
+end
+
+desc "Pre-commit checks"
+task :check => [:rubocop, :spec]
