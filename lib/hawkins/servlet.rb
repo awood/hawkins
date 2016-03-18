@@ -95,7 +95,7 @@ module Hawkins
           template = <<-TEMPLATE
           <% if with_swf? %>
             <script type="text/javascript">
-              WEB_SOCKET_SWF_LOCATION = "/__livereload/WebSocketMain.swf";
+              WEB_SOCKET_SWF_LOCATION = "<%= @options["baseurl"] %>/__livereload/WebSocketMain.swf";
               WEB_SOCKET_FORCE_FLASH = false;
             </script>
             <script type="text/javascript" src="<%= @options["baseurl"] %>/__livereload/swfobject.js"></script>

@@ -99,7 +99,33 @@ module Hawkins
         content = client.get_content(
           "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
         expect(content).to include("RACK_LIVERELOAD_PORT = #{opts['reload_port']}")
+        expect(content).to include("livereload.js?snipver=1")
         expect(content).to include("I am a simple web page")
+      end
+
+      it "applies the max and min delay options" do
+        opts = serve(standard_opts.merge("max_delay" => "1066", "min_delay" => "3"))
+        content = client.get_content(
+          "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
+        expect(content).to include("&amp;mindelay=3")
+        expect(content).to include("&amp;maxdelay=1066")
+      end
+
+      it "inserts a SWF LiveReload when --swf is used" do
+        opts = serve(standard_opts.merge("swf" => true))
+        host = opts['host']
+        port = opts['port']
+        base = opts['baseurl']
+        content = client.get_content(
+          "http://#{host}:#{port}/#{base}/hello.html")
+        expect(content).to include(
+          "WEB_SOCKET_SWF_LOCATION = \"/__livereload/WebSocketMain.swf")
+        expect(content).to include("__livereload/swfobject.js")
+        expect(content).to include("__livereload/web_socket.js")
+
+        res = client.get(
+          "http://#{host}:#{port}/#{base}/__livereload/WebSocketMain.swf")
+        expect(res.status_code).to eq(200)
       end
     end
   end
