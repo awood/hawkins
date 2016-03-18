@@ -6,8 +6,10 @@ module Hawkins
           "date" => ["-d", "--date [DATE]", "Date to mark post"],
           "editor" => ["-e", "--editor [EDITOR]", "Editor to open"],
           "source" => ["-s", "--source SOURCE", "Custom source directory"],
-          "config" => ["--config CONFIG_FILE[,CONFIG_FILE2,...]", Array, "Custom configuration file"]
-        }
+          "config" => [
+            "--config CONFIG_FILE[,CONFIG_FILE2,...]", Array, "Custom configuration file"
+          ],
+        }.freeze
 
         def init_with_program(prog)
           prog.command(:post) do |c|
@@ -30,7 +32,8 @@ module Hawkins
 
           if args.length != 1
             Jekyll.logger.abort_with(
-              "Please provide one argument to use as the post title.  Remember to quote multiword strings.")
+              "Please provide an argument to use as the post title.\n
+              Remember to quote multiword strings.")
           else
             title = args[0]
           end
@@ -42,7 +45,7 @@ module Hawkins
           posts = site.in_source_dir('_posts')
           filename = File.join(posts, "#{date.strftime('%Y-%m-%d')}-#{slug}.md")
 
-          #TODO incorporate Highline and allow users to elect to create the directory
+          # TODO incorporate Highline and allow users to elect to create the directory
           # Like Thor does
           unless File.exist?(posts)
             Jekyll.logger.abort_with("#{posts} does not exist.  Please create it.")
@@ -50,7 +53,8 @@ module Hawkins
 
           # TODO ask if user wishes to overwrite
           if File.exist?(filename)
-            Jekyll.logger.abort_with("#{filename} already exists.  Cowardly refusing to overwrite it.")
+            Jekyll.logger.abort_with(
+              "#{filename} already exists.  Cowardly refusing to overwrite it.")
           end
 
           content = <<-CONTENT

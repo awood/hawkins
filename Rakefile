@@ -26,6 +26,7 @@ begin
   task :default => :spec
   task :test => :spec
 rescue LoadError
+  $stderr.puts "Couldn't load rspec rake task"
 end
 
 desc "Code coverage detail"

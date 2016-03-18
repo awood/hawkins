@@ -35,18 +35,20 @@ module SpecUtils
   # Copied from Minitest.  The Rspec output matcher doesn't work very will with
   # blocks that are throwing exceptions.
   def capture_io
-    begin
-      orig_stdout, orig_stderr         = $stdout, $stderr
-      captured_stdout, captured_stderr = StringIO.new, StringIO.new
-      $stdout, $stderr                 = captured_stdout, captured_stderr
+    orig_stdout = $stdout
+    captured_stdout = StringIO.new
+    $stdout = captured_stdout
 
-      yield
+    orig_stderr = $stderr
+    captured_stderr = StringIO.new
+    $stderr = captured_stderr
 
-      return captured_stdout.string, captured_stderr.string
-    ensure
-      $stdout = orig_stdout
-      $stderr = orig_stderr
-    end
+    yield
+
+    return captured_stdout.string, captured_stderr.string
+  ensure
+    $stdout = orig_stdout
+    $stderr = orig_stderr
   end
 end
 

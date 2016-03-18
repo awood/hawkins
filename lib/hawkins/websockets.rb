@@ -21,32 +21,30 @@ module Hawkins
       # WebSockets requests will have a Connection: Upgrade header
       if parser.http_method != 'GET' || parser.upgrade?
         super
-      else
-        if parser.request_url =~ /^\/livereload.js/
-          headers = [
-            'HTTP/1.1 200 OK',
-            'Content-Type: application/javascript',
-            "Content-Length: #{File.size(reload_file)}",
-            '',
-            '',
-          ].join("\r\n")
-          send_data(headers)
-          stream_file_data(reload_file).callback do
-            close_connection_after_writing
-          end
-        else
-          body = "This port only serves livereload.js over HTTP.\n"
-          headers = [
-            'HTTP/1.1 400 Bad Request',
-            'Content-Type: text/plain',
-            "Content-Length: #{body.bytesize.to_s}",
-            '',
-            '',
-          ].join("\r\n")
-          send_data(headers)
-          send_data(body)
+      elsif parser.request_url =~ /^\/livereload.js/
+        headers = [
+          'HTTP/1.1 200 OK',
+          'Content-Type: application/javascript',
+          "Content-Length: #{File.size(reload_file)}",
+          '',
+          '',
+        ].join("\r\n")
+        send_data(headers)
+        stream_file_data(reload_file).callback do
           close_connection_after_writing
         end
+      else
+        body = "This port only serves livereload.js over HTTP.\n"
+        headers = [
+          'HTTP/1.1 400 Bad Request',
+          'Content-Type: text/plain',
+          "Content-Length: #{body.bytesize}",
+          '',
+          '',
+        ].join("\r\n")
+        send_data(headers)
+        send_data(body)
+        close_connection_after_writing
       end
     end
   end
@@ -100,7 +98,7 @@ module Hawkins
         end
       end
 
-      Jekyll::Hooks.register(:site, :post_write) do |site|
+      Jekyll::Hooks.register(:site, :post_write) do
         reload(@changed_pages) unless @changed_pages.nil?
         @changed_pages = nil
       end
@@ -127,14 +125,15 @@ module Hawkins
       end
     end
 
-    def connect(ws, handshake)
+    def connect(ws, _handshake)
       @connections_count += 1
       Jekyll.logger.info("LiveReload:", "Browser connected") if @connections_count == 1
-      ws.send(JSON.dump({
-        :command => 'hello',
-        :protocols => ['http://livereload.com/protocols/official-7'],
-        :serverName => 'jekyll livereload'
-      }))
+      ws.send(
+        JSON.dump(
+          :command => 'hello',
+          :protocols => ['http://livereload.com/protocols/official-7'],
+          :serverName => 'jekyll livereload',
+        ))
 
       @websockets << ws
     end

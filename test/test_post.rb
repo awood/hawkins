@@ -28,14 +28,14 @@ module Hawkins
       it 'fails on a missing title' do
         expect do
           Commands::Post.create([], {})
-        end.to raise_error(SystemExit).and output(/Please provide one argument/).to_stderr
+        end.to raise_error(SystemExit).and output(/Please provide an argument/).to_stderr
       end
 
       # TODO There is a lot of redundancy here.  There's got to be a better way.
       # Look at http://betterspecs.org for ideas.
       it 'uses a provided date' do
         title = "1999"
-        expected_body = <<-BODY.gsub(/^\s*/,'')
+        expected_body = <<-BODY.gsub(/^\s*/, '')
         ---
         title: #{title}
         ---
@@ -58,7 +58,7 @@ module Hawkins
 
       it 'uses today as the default date' do
         title = "Raspberry Beret"
-        expected_body =<<-BODY.gsub(/^\s*/,'')
+        expected_body = <<-BODY.gsub(/^\s*/, '')
         ---
         title: #{title}
         ---
@@ -128,8 +128,10 @@ module Hawkins
         allow(File).to receive(:open).with(/#{expected_file}/, 'w').and_yield(file)
         expect(file).to receive(:write).twice
 
-        ['gvim', 'vim'].each do |editor|
-          allow(Commands::Post).to receive(:exec).with(editor, '+', /#{expected_file}/).and_return(nil)
+        %w(gvim vim).each do |editor|
+          allow(Commands::Post).to receive(:exec)
+            .with(editor, '+', /#{expected_file}/)
+            .and_return(nil)
           stub_const("ENV", ENV.to_h.tap { |h| h['VISUAL'] = editor })
           expect do
             Commands::Post.create([title], {})
@@ -148,8 +150,10 @@ module Hawkins
         allow(File).to receive(:open).with(/#{expected_file}/, 'w').and_yield(file)
         expect(file).to receive(:write).twice
 
-        ['xemacs', 'emacs'].each do |editor|
-          allow(Commands::Post).to receive(:exec).with(editor, '+3', /#{expected_file}/).and_return(nil)
+        %w(xemacs emacs).each do |editor|
+          allow(Commands::Post).to receive(:exec)
+            .with(editor, '+3', /#{expected_file}/)
+            .and_return(nil)
           stub_const("ENV", ENV.to_h.tap { |h| h['VISUAL'] = editor })
           expect do
             Commands::Post.create([title], {})

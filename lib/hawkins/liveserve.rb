@@ -11,7 +11,7 @@ module Hawkins
           "min_delay" => ["--min-delay [SECONDS]", "Minimum reload delay"],
           "max_delay" => ["--max-delay [SECONDS]", "Maximum reload delay"],
           "reload_port" => ["--reload-port [PORT]", Integer, "Port for LiveReload to listen on"],
-        }.merge(Jekyll::Commands::Serve.singleton_class::COMMAND_OPTIONS)
+        }.merge(Jekyll::Commands::Serve.singleton_class::COMMAND_OPTIONS).freeze
 
         LIVERELOAD_PORT = 35729
 
@@ -35,7 +35,7 @@ module Hawkins
               opts["host"] ||= "localhost"
 
               opts["serving"] = true
-              opts["watch"  ] = true unless opts.key?("watch")
+              opts["watch"] = true unless opts.key?("watch")
               start(opts)
             end
           end
@@ -56,7 +56,8 @@ module Hawkins
 
           server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
-          server.mount("#{opts['baseurl']}/__livereload", WEBrick::HTTPServlet::FileHandler, LIVERELOAD_DIR)
+          server.mount("#{opts['baseurl']}/__livereload",
+            WEBrick::HTTPServlet::FileHandler, LIVERELOAD_DIR)
           server.mount(opts["baseurl"], ReloadServlet, destination, file_handler_opts)
 
           Jekyll.logger.info "Server address:", server_address(server, opts)
@@ -65,7 +66,7 @@ module Hawkins
         end
 
         def running?
-          return !(@running.nil? || @running.empty?)
+          !(@running.nil? || @running.empty?)
         end
 
         # Do a base pre-setup of WEBRick so that everything is in place
@@ -99,13 +100,13 @@ module Hawkins
             :StartCallback      => start_callback(opts["detach"]),
             :BindAddress        => opts["host"],
             :Port               => opts["port"],
-            :DirectoryIndex     => %W(
+            :DirectoryIndex     => %w(
               index.htm
               index.html
               index.rhtml
               index.cgi
               index.xml
-            )
+            ),
           }
 
           enable_ssl(opts)
@@ -117,12 +118,12 @@ module Hawkins
 
         private
         def file_handler_opts
-          WEBrick::Config::FileHandler.merge({
+          WEBrick::Config::FileHandler.merge(
             :FancyIndexing     => true,
             :NondisclosureName => [
               '.ht*', '~*'
             ]
-          })
+          )
         end
 
         #
@@ -130,7 +131,7 @@ module Hawkins
         private
         def server_address(server, opts)
           address = server.config[:BindAddress]
-          baseurl = "#{opts["baseurl"]}/" if opts["baseurl"]
+          baseurl = "#{opts['baseurl']}/" if opts["baseurl"]
           port = server.config[:Port]
 
           "http://#{address}:#{port}#{baseurl}"
@@ -186,6 +187,8 @@ module Hawkins
         # forget to add one of the certificates.
 
         private
+        # Not my code, so don't squawk about the style
+        # rubocop:disable all
         def enable_ssl(opts)
           return if !opts[:JekyllOptions]["ssl_cert"] && !opts[:JekyllOptions]["ssl_key"]
           if !opts[:JekyllOptions]["ssl_cert"] || !opts[:JekyllOptions]["ssl_key"]
@@ -200,6 +203,7 @@ module Hawkins
           opts[:SSLPrivateKey ] = OpenSSL::PKey::RSA.new(File.read(source_key))
           opts[:EnableSSL] = true
         end
+        # rubocop:enable all
 
         private
         def start_callback(detached)

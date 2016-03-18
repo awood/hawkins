@@ -22,14 +22,16 @@ module Hawkins
           "baseurl" => "",
           "detach" => false,
           "destination" => destination,
-          "reload_port" => Commands::LiveServe.singleton_class::LIVERELOAD_PORT
+          "reload_port" => Commands::LiveServe.singleton_class::LIVERELOAD_PORT,
         }
       end
 
       before(:each) do
         site = instance_double(Jekyll::Site)
         allow(Jekyll::Site).to receive(:new).and_return(site)
-        allow(site).to receive(:in_source_dir).with("_posts").and_return("/no/thing/_posts")
+        allow(site).to receive(:in_source_dir)
+          .with("_posts")
+          .and_return("/no/thing/_posts")
 
         @thread = nil
         @started = Queue.new
@@ -45,7 +47,7 @@ module Hawkins
           Commands::LiveServe.start(opts)
         end
 
-        while(!Commands::LiveServe.running?)
+        while !Commands::LiveServe.running?
           sleep(0.1)
         end
       end
@@ -59,7 +61,8 @@ module Hawkins
           start_serving(opts)
         end
 
-        res_content = client.get_content("http://#{opts['host']}:#{opts['reload_port']}/livereload.js")
+        res_content = client.get_content(
+          "http://#{opts['host']}:#{opts['reload_port']}/livereload.js")
         expect(res_content).to include('LiveReload.on(')
       end
 
