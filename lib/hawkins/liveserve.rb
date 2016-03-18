@@ -54,19 +54,23 @@ module Hawkins
           destination = opts["destination"]
           setup(destination)
 
-          server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
+          @server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
-          server.mount("#{opts['baseurl']}/__livereload",
+          @server.mount("#{opts['baseurl']}/__livereload",
             WEBrick::HTTPServlet::FileHandler, LIVERELOAD_DIR)
-          server.mount(opts["baseurl"], ReloadServlet, destination, file_handler_opts)
+          @server.mount(opts["baseurl"], ReloadServlet, destination, file_handler_opts)
 
-          Jekyll.logger.info "Server address:", server_address(server, opts)
-          launch_browser server, opts if opts["open_url"]
-          boot_or_detach server, opts
+          Jekyll.logger.info "Server address:", server_address(@server, opts)
+          launch_browser(@server, opts) if opts["open_url"]
+          boot_or_detach(@server, opts)
         end
 
         def running?
           !(@running.nil? || @running.empty?)
+        end
+
+        def shutdown
+          @server.shutdown if running?
         end
 
         # Do a base pre-setup of WEBRick so that everything is in place
@@ -220,8 +224,8 @@ module Hawkins
         def stop_callback(detached)
           unless detached
             proc do
-              @running.clear
               @reload_reactor.stop
+              @running.clear
             end
           end
         end
