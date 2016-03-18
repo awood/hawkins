@@ -43,8 +43,8 @@ module Hawkins
 
         def start(opts)
           @running = Queue.new
-          reload_reactor = LiveReloadReactor.new(opts)
-          reload_reactor.start
+          @reload_reactor = LiveReloadReactor.new(opts)
+          @reload_reactor.start
           Jekyll::Commands::Build.process(opts)
           LiveServe.process(opts)
         end
@@ -98,6 +98,7 @@ module Hawkins
             :MimeTypes          => mime_types,
             :DocumentRoot       => opts["destination"],
             :StartCallback      => start_callback(opts["detach"]),
+            :StopCallback       => stop_callback(opts["detach"]),
             :BindAddress        => opts["host"],
             :Port               => opts["port"],
             :DirectoryIndex     => %w(
@@ -211,6 +212,16 @@ module Hawkins
             proc do
               Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
               @running << '.'
+            end
+          end
+        end
+
+        private
+        def stop_callback(detached)
+          unless detached
+            proc do
+              @running.clear
+              @reload_reactor.stop
             end
           end
         end

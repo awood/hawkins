@@ -61,10 +61,11 @@ module Hawkins
     end
 
     def stop
-      @thread.kill
+      Jekyll.logger.info("LiveReload Server:", "halted")
+      @thread.kill unless @thread.nil?
     end
 
-    def running
+    def running?
       !@thread.nil? && @thread.alive?
     end
 
