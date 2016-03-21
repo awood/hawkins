@@ -32,7 +32,6 @@ module Hawkins
             cmd.action do |_, opts|
               # TODO need to figure out how to set defaults correctly
               opts["reload_port"] ||= LIVERELOAD_PORT
-              opts["host"] ||= "localhost"
 
               opts["serving"] = true
               opts["watch"] = true unless opts.key?("watch")
@@ -42,6 +41,8 @@ module Hawkins
         end
 
         def start(opts)
+          opts = configuration_from_options(opts)
+
           @running = Queue.new
           @reload_reactor = LiveReloadReactor.new(opts)
           @reload_reactor.start
@@ -50,7 +51,6 @@ module Hawkins
         end
 
         def process(opts)
-          opts = configuration_from_options(opts)
           destination = opts["destination"]
           setup(destination)
 
