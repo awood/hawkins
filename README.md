@@ -7,7 +7,7 @@ Add the following into your `Gemfile`
 
 ```
 group :jekyll_plugins do
-  gem 'hawkins', :git => "https://github.com/awood/hawkins", :branch => 'jekyll3'
+  gem 'hawkins'
 end
 ```
 
@@ -27,11 +27,21 @@ If you don't have a browser that implements WebSockets, you can use the
 `--swf` option that will have Hawkins load a Flash file that implements
 WebSockets.
 
+## A Note on SSL/TLS
+If you tell Jekyll to serve your files over SSL/TLS (by specifying the
+`--ssl-cert` and `--ssl-key` options), then LiveReload will attempt to use
+SSL/TLS as well.  If you are using a certificate that a browser would not
+normally accept (e.g.  self-signed or issued by an unknown certificate
+authority), you will need to create an exception for the server and port
+that Jekyll is serving content over and also for the server and port that
+LiveReload is running on.  Generally speaking, these exceptions will be
+"127.0.0.1:4000" and "127.0.0.1:35729".
+
 ## Thanks
 Lots of thanks to [guard-livereload](https://github.com/guard/guard-livereload)
 and [rack-livereload](https://github.com/johnbintz/rack-livereload) which
 provided a lot of the code and ideas that Hawkins uses.  And of course thanks to
-the Jekyll team for providing an outstanding product.
+the Jekyll team and LiveReload team for providing outstanding software.
 
 ## Copyright
 Copyright (c) 2014 Alex Wood. See LICENSE.txt for further details.
