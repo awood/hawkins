@@ -139,7 +139,13 @@ module Hawkins
           baseurl = "#{opts['baseurl']}/" if opts["baseurl"]
           port = server.config[:Port]
 
-          "http://#{address}:#{port}#{baseurl}"
+          if opts['ssl_cert'] && opts['ssl_key']
+            protocol = "https"
+          else
+            protocol = "http"
+          end
+
+          "#{protocol}://#{address}:#{port}#{baseurl}"
         end
 
         #
@@ -192,30 +198,33 @@ module Hawkins
         # forget to add one of the certificates.
 
         private
-        # Not my code, so don't squawk about the style
-        # rubocop:disable all
         def enable_ssl(opts)
-          return if !opts[:JekyllOptions]["ssl_cert"] && !opts[:JekyllOptions]["ssl_key"]
-          if !opts[:JekyllOptions]["ssl_cert"] || !opts[:JekyllOptions]["ssl_key"]
-            raise RuntimeError, "--ssl-cert or --ssl-key missing."
+          jekyll_opts = opts[:JekyllOptions]
+          return if !jekyll_opts['ssl_cert'] && !jekyll_opts['ssl_key']
+          if !jekyll_opts['ssl_cert'] || !jekyll_opts['ssl_key']
+            raise "--ssl-cert or --ssl-key missing."
           end
+
+          Jekyll.logger.info("LiveReload:", "Serving over SSL/TLS.  If you are using a "\
+            "certificate signed by an unknown CA, you will need to add an exception for both "\
+            "#{jekyll_opts['host']}:#{jekyll_opts['port']} and "\
+            "#{jekyll_opts['host']}:#{jekyll_opts['reload_port']}")
 
           require "openssl"
           require "webrick/https"
-          source_key = Jekyll.sanitized_path(opts[:JekyllOptions]["source"], opts[:JekyllOptions]["ssl_key" ])
-          source_certificate = Jekyll.sanitized_path(opts[:JekyllOptions]["source"], opts[:JekyllOptions]["ssl_cert"])
+          source_key = Jekyll.sanitized_path(jekyll_opts['source'], jekyll_opts['ssl_key'])
+          source_certificate = Jekyll.sanitized_path(jekyll_opts['source'], jekyll_opts['ssl_cert'])
           opts[:SSLCertificate] = OpenSSL::X509::Certificate.new(File.read(source_certificate))
-          opts[:SSLPrivateKey ] = OpenSSL::PKey::RSA.new(File.read(source_key))
-          opts[:EnableSSL] = true
+          opts[:SSLPrivateKey] = OpenSSL::PKey::RSA.new(File.read(source_key))
+          opts[:SSLEnable] = true
         end
-        # rubocop:enable all
 
         private
         def start_callback(detached)
           unless detached
             proc do
-              Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
               @running << '.'
+              Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
             end
           end
         end

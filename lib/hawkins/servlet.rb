@@ -102,17 +102,22 @@ module Hawkins
             <script type="text/javascript" src="<%= @options["baseurl"] %>/__livereload/web_socket.js"></script>
           <% end %>
           <script type="text/javascript">
-            RACK_LIVERELOAD_PORT = <%= @options["reload_port"] %>;
+            HAWKINS_LIVERELOAD_PORT = <%= @options["reload_port"] %>;
+            HAWKINS_LIVERELOAD_PROTOCOL = <%= livereload_protocol %>;
           </script>
           <script type="text/javascript" src="<%= livereload_source %>"></script>
           TEMPLATE
           ERB.new(Jekyll::Utils.strip_heredoc(template))
         end
 
+        def livereload_protocol
+          use_ssl = @options["ssl_cert"] && @options["ssl_key"]
+          use_ssl ? '"wss://"' : '"ws://"'
+        end
+
         def livereload_source
-          # TODO get SSL working
-          # use_ssl = @options["ssl_cert"] && @options["ssl_key"]
-          protocol = "http"
+          use_ssl = @options["ssl_cert"] && @options["ssl_key"]
+          protocol = use_ssl ? "https" : "http"
 
           # Unclear what "snipver" does.  https://github.com/livereload/livereload-js states
           # that the recommended setting is 1.

@@ -6,8 +6,13 @@ require_relative './spec_helper'
 module Hawkins
   RSpec.describe "Hawkins" do
     context "when running in liveserve mode" do
-      let!(:destination) do
-        Dir.mktmpdir("jekyll-destination")
+      let!(:temp_dir) do
+        Dir.mktmpdir("hawkins_test")
+      end
+
+      let(:destination) do
+        Dir.mkdir(File.join(temp_dir, "_site"))
+        File.join(temp_dir, "_site")
       end
 
       let(:client) do
@@ -20,6 +25,7 @@ module Hawkins
           "host" => "localhost",
           "baseurl" => "",
           "detach" => false,
+          "source" => temp_dir,
           "destination" => destination,
           "reload_port" => Commands::LiveServe.singleton_class::LIVERELOAD_PORT,
         }
@@ -55,8 +61,7 @@ module Hawkins
           sleep(0.1)
         end
 
-        File.delete(File.join(destination, "hello.html"))
-        Dir.delete(destination)
+        FileUtils.remove_entry_secure(temp_dir, true)
       end
 
       def start_server(opts)
@@ -87,6 +92,34 @@ module Hawkins
         expect(content).to include('LiveReload.on(')
       end
 
+      it "serves livereload.js over HTTPS" do
+        key = File.join(File.dirname(__FILE__), "resources", "test.key")
+        cert = File.join(File.dirname(__FILE__), "resources", "test.crt")
+
+        FileUtils.cp(key, temp_dir)
+        FileUtils.cp(cert, temp_dir)
+        opts = serve(standard_opts.merge('ssl_cert' => 'test.crt', 'ssl_key' => 'test.key'))
+
+        client.ssl_config.add_trust_ca(cert)
+        content = client.get_content(
+          "https://#{opts['host']}:#{opts['reload_port']}/livereload.js")
+        expect(content).to include('LiveReload.on(')
+      end
+
+      it "uses wss when SSL options are provided" do
+        key = File.join(File.dirname(__FILE__), "resources", "test.key")
+        cert = File.join(File.dirname(__FILE__), "resources", "test.crt")
+
+        FileUtils.cp(key, temp_dir)
+        FileUtils.cp(cert, temp_dir)
+        opts = serve(standard_opts.merge('ssl_cert' => 'test.crt', 'ssl_key' => 'test.key'))
+
+        client.ssl_config.add_trust_ca(cert)
+        content = client.get_content(
+          "https://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
+        expect(content).to include('HAWKINS_LIVERELOAD_PROTOCOL = "wss://";')
+      end
+
       it "serves nothing else over HTTP on the default LiveReload port" do
         opts = serve(standard_opts)
         res = client.get("http://#{opts['host']}:#{opts['reload_port']}/")
@@ -98,7 +131,8 @@ module Hawkins
         opts = serve(standard_opts)
         content = client.get_content(
           "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
-        expect(content).to include("RACK_LIVERELOAD_PORT = #{opts['reload_port']}")
+        expect(content).to include("HAWKINS_LIVERELOAD_PORT = #{opts['reload_port']}")
+        expect(content).to include('HAWKINS_LIVERELOAD_PROTOCOL = "ws://";')
         expect(content).to include("livereload.js?snipver=1")
         expect(content).to include("I am a simple web page")
       end

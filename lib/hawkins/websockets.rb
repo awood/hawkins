@@ -10,6 +10,14 @@ module Hawkins
     attr_reader :reload_file
 
     def initialize(opts)
+      @ssl_enabled = opts['ssl_cert'] && opts['ssl_key']
+      if @ssl_enabled
+        opts[:tls_options] = {
+          :private_key_file => Jekyll.sanitized_path(opts['source'], opts['ssl_key']),
+          :cert_chain_file => Jekyll.sanitized_path(opts['source'], opts['ssl_cert']),
+        }
+        opts[:secure] = true
+      end
       super
       @reload_file = File.join(LIVERELOAD_DIR, "livereload.js")
     end
@@ -61,7 +69,7 @@ module Hawkins
     end
 
     def stop
-      Jekyll.logger.info("LiveReload Server:", "halted")
+      Jekyll.logger.debug("LiveReload Server:", "halted")
       @thread.kill unless @thread.nil?
     end
 

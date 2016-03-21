@@ -138,7 +138,7 @@ __connector.Connector = Connector = (function() {
     this.WebSocket = WebSocket;
     this.Timer = Timer;
     this.handlers = handlers;
-    this._uri = "ws://" + this.options.host + ":" + this.options.port + "/livereload";
+    this._uri = HAWKINS_LIVERELOAD_PROTOCOL + this.options.host + ":" + this.options.port + "/livereload";
     this._nextDelay = this.options.mindelay;
     this._connectionDesired = false;
     this.protocol = 0;
@@ -317,7 +317,7 @@ var Options;
 __options.Options = Options = (function() {
   function Options() {
     this.host = null;
-    this.port = RACK_LIVERELOAD_PORT;
+    this.port = HAWKINS_LIVERELOAD_PORT;
     this.snipver = null;
     this.ext = null;
     this.extver = null;
