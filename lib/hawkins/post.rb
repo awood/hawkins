@@ -12,10 +12,14 @@ module Hawkins
         }.freeze
 
         def init_with_program(prog)
-          prog.command(:post) do |c|
-            c.syntax("new [options]")
-            c.description("create a new post")
-            c.action do |args, options|
+          prog.command(:post) do |cmd|
+            cmd.syntax("post [options]")
+            cmd.description("create a new post")
+            COMMAND_OPTIONS.each do |key, val|
+              cmd.option(key, *val)
+            end
+
+            cmd.action do |args, options|
               Hawkins::Commands::Post.create(args, options)
             end
           end
