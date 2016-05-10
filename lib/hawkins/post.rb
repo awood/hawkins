@@ -63,6 +63,7 @@ module Hawkins
 
           content = <<-CONTENT
             ---
+            layout: post
             title: #{title}
             ---
           CONTENT
