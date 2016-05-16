@@ -37,6 +37,7 @@ module Hawkins
         title = "1999"
         expected_body = <<-BODY.gsub(/^\s*/, '')
         ---
+        layout: post
         title: #{title}
         ---
         BODY
@@ -60,6 +61,7 @@ module Hawkins
         title = "Raspberry Beret"
         expected_body = <<-BODY.gsub(/^\s*/, '')
         ---
+        layout: post
         title: #{title}
         ---
         BODY
@@ -152,7 +154,7 @@ module Hawkins
 
         %w(xemacs emacs).each do |editor|
           allow(Commands::Post).to receive(:exec)
-            .with(editor, '+3', /#{expected_file}/)
+            .with(editor, '+4', /#{expected_file}/)
             .and_return(nil)
           stub_const("ENV", ENV.to_h.tap { |h| h['VISUAL'] = editor })
           expect do
