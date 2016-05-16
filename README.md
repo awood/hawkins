@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/awood/hawkins.png?branch=master)](https://travis-ci.org/awood/hawkins)
+
 # Hawkins
 Hawkins is a [Jekyll](http://jekyllrb.com) 3.1+ plugin that incorporates
 [LiveReload](http://www.livereload.com) into the Jekyll "serve" process.
