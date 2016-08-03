@@ -29,6 +29,14 @@ If you don't have a browser that implements WebSockets, you can use the
 `--swf` option that will have Hawkins load a Flash file that implements
 WebSockets.
 
+## Using `--ignore`
+
+LiveReload errs on the side of reloading when it comes to the message it gets.
+If, for example, a page is ignored but a CSS file linked in the page isn't, the
+page will still be reloaded if the CSS file is contained in the message sent to
+LiveReload.  Additionally, the path matching is very loose so that a message to
+reload "/" will always lead the page to reload since every page starts with "/".
+
 ## A Note on SSL/TLS
 If you tell Jekyll to serve your files over SSL/TLS (by specifying the
 `--ssl-cert` and `--ssl-key` options), then LiveReload will attempt to use
@@ -38,6 +46,11 @@ authority), you will need to create an exception for the server and port
 that Jekyll is serving content over and also for the server and port that
 LiveReload is running on.  Generally speaking, these exceptions will be
 "127.0.0.1:4000" and "127.0.0.1:35729".
+
+## A Note on Compatibility
+
+Hawkins does not currently work on JRuby.  I'm working on figuring out why, but
+be forewarned.
 
 ## Thanks
 Lots of thanks to [guard-livereload](https://github.com/guard/guard-livereload)

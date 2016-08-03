@@ -6,8 +6,7 @@ module Hawkins
       class << self
         COMMAND_OPTIONS = {
           "swf"      => ["--swf", "Use Flash for WebSockets support"],
-          # TODO Should probably only accept fnmatch-esque strings and convert them to regexs
-          "ignore"   => ["--ignore [REGEX]", "Files not to reload"],
+          "ignore"   => ["--ignore GLOB1[,GLOB2[,...]]", "Files not to reload"],
           "min_delay" => ["--min-delay [SECONDS]", "Minimum reload delay"],
           "max_delay" => ["--max-delay [SECONDS]", "Maximum reload delay"],
           "reload_port" => ["--reload-port [PORT]", Integer, "Port for LiveReload to listen on"],
