@@ -18,7 +18,7 @@ module Hawkins
         end
 
         def skip_processing?
-          !html? || chunked? || inline? || ignored? || bad_browser?
+          !html? || chunked? || inline? || bad_browser?
         end
 
         def chunked?
@@ -27,11 +27,6 @@ module Hawkins
 
         def inline?
           @res['Content-Disposition'] =~ %r{^inline}
-        end
-
-        def ignored?
-          path = @req.query_string.nil? ? @req.path_info : "#{@req.path_info}?#{@req.query_string}"
-          @options["ignore"] && @options["ignore"].any? { |filter| path[filter] }
         end
 
         def bad_browser?

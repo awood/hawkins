@@ -68,8 +68,7 @@ module Hawkins
     attr_reader :thread
     attr_reader :opts
 
-    def initialize(opts)
-      @opts = opts
+    def initialize
       @thread = nil
       @websockets = []
       @connections_count = 0
@@ -84,7 +83,7 @@ module Hawkins
       !@thread.nil? && @thread.alive?
     end
 
-    def start
+    def start(opts)
       @thread = Thread.new do
         # Use epoll if the kernel supports it
         EM.epoll
@@ -106,21 +105,7 @@ module Hawkins
           end
         end
       end
-
-      Jekyll::Hooks.register(:site, :post_render) do |site|
-        regenerator = Jekyll::Regenerator.new(site)
-        @changed_pages = site.pages.select do |p|
-          regenerator.regenerate?(p)
-        end
-      end
-
-      Jekyll::Hooks.register(:site, :post_write) do
-        reload(@changed_pages) unless @changed_pages.nil?
-        @changed_pages = nil
-      end
     end
-
-    private
 
     # For a description of the protocol see http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
     def reload(pages)

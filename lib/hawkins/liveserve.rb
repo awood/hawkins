@@ -30,9 +30,7 @@ module Hawkins
             end
 
             cmd.action do |_, opts|
-              # TODO need to figure out how to set defaults correctly
               opts["reload_port"] ||= LIVERELOAD_PORT
-
               opts["serving"] = true
               opts["watch"] = true unless opts.key?("watch")
               start(opts)
@@ -41,18 +39,21 @@ module Hawkins
         end
 
         def start(opts)
-          opts = configuration_from_options(opts)
-
-          @running = Queue.new
-          @reload_reactor = LiveReloadReactor.new(opts)
-          @reload_reactor.start
+          config = opts["config"]
+          @reload_reactor = nil
+          register_reload_hooks(opts)
           Jekyll::Commands::Build.process(opts)
+          opts["config"] = config
           LiveServe.process(opts)
         end
 
         def process(opts)
+          opts = configuration_from_options(opts)
           destination = opts["destination"]
           setup(destination)
+
+          @running = Queue.new
+          @reload_reactor.start(opts)
 
           @server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
@@ -71,6 +72,38 @@ module Hawkins
 
         def shutdown
           @server.shutdown if running?
+        end
+
+        private
+        def register_reload_hooks(opts)
+          require_relative "websockets"
+          @reload_reactor = LiveReloadReactor.new
+
+          Jekyll::Hooks.register(:site, :post_render) do |site|
+            regenerator = Jekyll::Regenerator.new(site)
+            @changed_pages = site.pages.select do |p|
+              regenerator.regenerate?(p)
+            end
+          end
+
+          # A note on ignoring files: LiveReload errs on the side of reloading when it
+          # comes to the message it gets.  If, for example, a page is ignored but a CSS
+          # file linked in the page isn't, the page will still be reloaded if the CSS
+          # file is contained in the message sent to LiveReload.  Additionally, the
+          # path matching is very loose so that a message to reload "/" will always
+          # lead the page to reload since every page starts with "/".
+          Jekyll::Hooks.register(:site, :post_write) do
+            unless @changed_pages.nil? || !@reload_reactor.running?
+              ignore, @changed_pages = @changed_pages.partition do |p|
+                Array(opts["ignore"]).any? do |filter|
+                  File.fnmatch(filter, Jekyll.sanitized_path(p.relative_path))
+                end
+              end
+              Jekyll.logger.debug "LiveReload:", "Ignoring #{ignore.map(&:relative_path)}"
+              @reload_reactor.reload(@changed_pages)
+            end
+            @changed_pages = nil
+          end
         end
 
         # Do a base pre-setup of WEBRick so that everything is in place
