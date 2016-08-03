@@ -117,7 +117,8 @@ module Hawkins
         client.ssl_config.add_trust_ca(cert)
         content = client.get_content(
           "https://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
-        expect(content).to include('HAWKINS_LIVERELOAD_PROTOCOL = "wss://";')
+        expect(content).to include(
+          "src=\"https://#{opts['host']}:#{opts['reload_port']}/livereload.js")
       end
 
       it "serves nothing else over HTTP on the default LiveReload port" do
@@ -131,9 +132,7 @@ module Hawkins
         opts = serve(standard_opts)
         content = client.get_content(
           "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
-        expect(content).to include("HAWKINS_LIVERELOAD_PORT = #{opts['reload_port']}")
-        expect(content).to include('HAWKINS_LIVERELOAD_PROTOCOL = "ws://";')
-        expect(content).to include("livereload.js?snipver=1")
+        expect(content).to include("livereload.js?snipver=1&amp;port=#{opts['livereload_port']}")
         expect(content).to include("I am a simple web page")
       end
 

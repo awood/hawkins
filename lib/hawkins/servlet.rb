@@ -102,17 +102,10 @@ module Hawkins
             <script type="text/javascript" src="<%= @options["baseurl"] %>/__livereload/web_socket.js"></script>
           <% end %>
           <script type="text/javascript">
-            HAWKINS_LIVERELOAD_PORT = <%= @options["reload_port"] %>;
-            HAWKINS_LIVERELOAD_PROTOCOL = <%= livereload_protocol %>;
+            document.write('<script src="<%= livereload_source %>"></' + 'script>');
           </script>
-          <script type="text/javascript" src="<%= livereload_source %>"></script>
           TEMPLATE
           ERB.new(Jekyll::Utils.strip_heredoc(template))
-        end
-
-        def livereload_protocol
-          use_ssl = @options["ssl_cert"] && @options["ssl_key"]
-          use_ssl ? '"wss://"' : '"ws://"'
         end
 
         def livereload_source
