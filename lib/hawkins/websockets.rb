@@ -7,19 +7,27 @@ module Hawkins
   # despite the fact that the protocol itself uses WebSockets.  This custom connection
   # class addresses the dual protocols that the server needs to understand.
   class HttpAwareConnection < EventMachine::WebSocket::Connection
-    attr_reader :reload_file
+    attr_reader :reload_body, :reload_size
 
     def initialize(opts)
+      em_opts = {}
       @ssl_enabled = opts['ssl_cert'] && opts['ssl_key']
       if @ssl_enabled
-        opts[:tls_options] = {
+        em_opts[:tls_options] = {
           :private_key_file => Jekyll.sanitized_path(opts['source'], opts['ssl_key']),
           :cert_chain_file => Jekyll.sanitized_path(opts['source'], opts['ssl_cert']),
         }
-        opts[:secure] = true
+        em_opts[:secure] = true
       end
-      super
-      @reload_file = File.join(LIVERELOAD_DIR, "livereload.js")
+
+      # Too noisy even for debug level logging.
+      # em_opts[:debug] = true
+
+      super(em_opts)
+
+      reload_file = File.join(LIVERELOAD_DIR, "livereload.js")
+      @reload_body = File.read(reload_file)
+      @reload_size = File.size(reload_file)
     end
 
     def dispatch(data)
@@ -33,14 +41,13 @@ module Hawkins
         headers = [
           'HTTP/1.1 200 OK',
           'Content-Type: application/javascript',
-          "Content-Length: #{File.size(reload_file)}",
+          "Content-Length: #{reload_size}",
           '',
           '',
         ].join("\r\n")
         send_data(headers)
-        stream_file_data(reload_file).callback do
-          close_connection_after_writing
-        end
+        send_data(reload_body)
+        close_connection_after_writing
       else
         body = "This port only serves livereload.js over HTTP.\n"
         headers = [
