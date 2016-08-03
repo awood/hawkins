@@ -63,12 +63,17 @@ module Hawkins
         end
 
         def process!
+          # @body will usually be a File object but Strings occur in rare cases
+          # that occur for reasons unknown to me.
           @new_body = []
-          begin
-            @body.each { |line| @new_body << line.to_s }
-          ensure
-            # @body will be a File object
-            @body.close
+          if @body.respond_to?(:each)
+            begin
+              @body.each { |line| @new_body << line.to_s }
+            ensure
+              @body.close
+            end
+          else
+            @new_body = @body.lines
           end
 
           @content_length = 0
