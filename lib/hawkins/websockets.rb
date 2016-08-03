@@ -76,8 +76,8 @@ module Hawkins
     end
 
     def stop
+      EM.stop if EM.reactor_running?
       Jekyll.logger.debug("LiveReload Server:", "halted")
-      @thread.kill unless @thread.nil?
     end
 
     def running?
