@@ -185,9 +185,9 @@ module Hawkins
         private
         def launch_browser(server, opts)
           command =
-            if Utils::Platforms.windows?
+            if Jekyll::Utils::Platforms.windows?
               "start"
-            elsif Utils::Platforms.osx?
+            elsif Jekyll::Utils::Platforms.osx?
               "open"
             else
               "xdg-open"
