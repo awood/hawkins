@@ -3,7 +3,6 @@ require 'thread'
 module Hawkins
   module Commands
     class LiveServe < Jekyll::Command
-
       # Based on pattern described in
       # https://emptysqua.re/blog/an-event-synchronization-primitive-for-ruby/
       @mutex = Mutex.new
