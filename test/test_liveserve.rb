@@ -57,8 +57,10 @@ module Hawkins
           Commands::LiveServe.shutdown
         end
 
-        while Commands::LiveServe.running?
-          sleep(0.1)
+        Commands::LiveServe.mutex.synchronize do
+          if Commands::LiveServe.is_running
+            Commands::LiveServe.running_cond.wait(Commands::LiveServe.mutex)
+          end
         end
 
         FileUtils.remove_entry_secure(temp_dir, true)
@@ -69,8 +71,10 @@ module Hawkins
           Commands::LiveServe.start(opts)
         end
 
-        while !Commands::LiveServe.running?
-          sleep(0.1)
+        Commands::LiveServe.mutex.synchronize do
+          unless Commands::LiveServe.is_running
+            Commands::LiveServe.running_cond.wait(Commands::LiveServe.mutex)
+          end
         end
       end
 
