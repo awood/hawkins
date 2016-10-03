@@ -3,6 +3,13 @@ require 'thread'
 module Hawkins
   module Commands
     class LiveServe < Jekyll::Command
+
+      # Based on pattern described in
+      # https://emptysqua.re/blog/an-event-synchronization-primitive-for-ruby/
+      @mutex = Mutex.new
+      @running_cond = ConditionVariable.new
+      @is_running = false
+
       class << self
         COMMAND_OPTIONS = {
           "swf"      => ["--swf", "Use Flash for WebSockets support"],
@@ -13,6 +20,8 @@ module Hawkins
         }.merge(Jekyll::Commands::Serve.singleton_class::COMMAND_OPTIONS).freeze
 
         LIVERELOAD_PORT = 35729
+
+        attr_reader :mutex, :running_cond, :is_running
 
         #
 
@@ -51,7 +60,6 @@ module Hawkins
           destination = opts["destination"]
           setup(destination)
 
-          @running = Queue.new
           @reload_reactor.start(opts)
 
           @server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
@@ -65,12 +73,8 @@ module Hawkins
           boot_or_detach(@server, opts)
         end
 
-        def running?
-          !(@running.nil? || @running.empty?)
-        end
-
         def shutdown
-          @server.shutdown if running?
+          @server.shutdown if @is_running
         end
 
         private
@@ -255,8 +259,11 @@ module Hawkins
         def start_callback(detached)
           unless detached
             proc do
-              @running << '.'
-              Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
+              mutex.synchronize do
+                @is_running = true
+                Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
+                running_cond.signal
+              end
             end
           end
         end
@@ -265,8 +272,11 @@ module Hawkins
         def stop_callback(detached)
           unless detached
             proc do
-              @reload_reactor.stop
-              @running.clear
+              mutex.synchronize do
+                @reload_reactor.stop unless @reload_reactor.nil?
+                @is_running = false
+                running_cond.signal
+              end
             end
           end
         end
