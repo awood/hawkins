@@ -60,7 +60,6 @@ module Hawkins
           setup(destination)
 
           @reload_reactor.start(opts)
-
           @server = WEBrick::HTTPServer.new(webrick_opts(opts)).tap { |o| o.unmount("") }
 
           @server.mount("#{opts['baseurl']}/__livereload",
@@ -95,7 +94,7 @@ module Hawkins
           # path matching is very loose so that a message to reload "/" will always
           # lead the page to reload since every page starts with "/".
           Jekyll::Hooks.register(:site, :post_write) do
-            unless @changed_pages.nil? || !@reload_reactor.running?
+            if @changed_pages && @reload_reactor && @reload_reactor.is_running
               ignore, @changed_pages = @changed_pages.partition do |p|
                 Array(opts["ignore"]).any? do |filter|
                   File.fnmatch(filter, Jekyll.sanitized_path(p.relative_path))
@@ -259,6 +258,11 @@ module Hawkins
           unless detached
             proc do
               mutex.synchronize do
+                @reload_reactor.reactor_mutex.synchronize do
+                  unless EM.reactor_running?
+                    @reload_reactor.reactor_running_cond.wait(@reload_reactor.reactor_mutex)
+                  end
+                end
                 @is_running = true
                 Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
                 running_cond.signal
@@ -272,7 +276,14 @@ module Hawkins
           unless detached
             proc do
               mutex.synchronize do
-                @reload_reactor.stop unless @reload_reactor.nil?
+                unless @reload_reactor.nil?
+                  @reload_reactor.stop
+                  @reload_reactor.reactor_mutex.synchronize do
+                    if EM.reactor_running?
+                      @reload_reactor.reactor_running_cond.wait(@reload_reactor.reactor_mutex)
+                    end
+                  end
+                end
                 @is_running = false
                 running_cond.signal
               end

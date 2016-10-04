@@ -67,11 +67,14 @@ module Hawkins
   class LiveReloadReactor
     attr_reader :thread
     attr_reader :opts
+    attr_reader :reactor_mutex, :reactor_running_cond
 
     def initialize
       @thread = nil
       @websockets = []
       @connections_count = 0
+      @reactor_mutex = Mutex.new
+      @reactor_running_cond = ConditionVariable.new
     end
 
     def stop
@@ -80,14 +83,13 @@ module Hawkins
     end
 
     def running?
-      !@thread.nil? && @thread.alive?
+      EM.reactor_running?
     end
 
     def start(opts)
       @thread = Thread.new do
         # Use epoll if the kernel supports it
         EM.epoll
-        # TODO enable SSL
         EM.run do
           Jekyll.logger.info("LiveReload Server:", "#{opts['host']}:#{opts['reload_port']}")
           EM.start_server(opts['host'], opts['reload_port'], HttpAwareConnection, opts) do |ws|
@@ -101,6 +103,19 @@ module Hawkins
 
             ws.onmessage do |msg|
               print_message(msg)
+            end
+          end
+
+          # Notify blocked threads that EventMachine has started or shutdown
+          EM.schedule do
+            @reactor_mutex.synchronize do
+              @reactor_running_cond.broadcast
+            end
+          end
+
+          EM.add_shutdown_hook do
+            @reactor_mutex.synchronize do
+              @reactor_running_cond.broadcast
             end
           end
         end
