@@ -258,9 +258,11 @@ module Hawkins
           unless detached
             proc do
               mutex.synchronize do
-                @reload_reactor.reactor_mutex.synchronize do
-                  unless EM.reactor_running?
-                    @reload_reactor.reactor_running_cond.wait(@reload_reactor.reactor_mutex)
+                unless @reload_reactor.nil?
+                  @reload_reactor.reactor_mutex.synchronize do
+                    unless EM.reactor_running?
+                      @reload_reactor.reactor_running_cond.wait(@reload_reactor.reactor_mutex)
+                    end
                   end
                 end
                 @is_running = true

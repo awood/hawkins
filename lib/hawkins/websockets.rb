@@ -120,6 +120,7 @@ module Hawkins
           end
         end
       end
+      @thread.abort_on_exception = true
     end
 
     # For a description of the protocol see http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol

@@ -70,6 +70,7 @@ module Hawkins
         @thread = Thread.new do
           Commands::LiveServe.start(opts)
         end
+        @thread.abort_on_exception = true
 
         Commands::LiveServe.mutex.synchronize do
           unless Commands::LiveServe.is_running
