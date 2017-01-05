@@ -27,7 +27,7 @@ module Hawkins
 
       reload_file = File.join(LIVERELOAD_DIR, "livereload.js")
       @reload_body = File.read(reload_file)
-      @reload_size = File.size(reload_file)
+      @reload_size = @reload_body.bytesize
     end
 
     def dispatch(data)
