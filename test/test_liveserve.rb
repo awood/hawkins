@@ -122,8 +122,7 @@ module Hawkins
         client.ssl_config.add_trust_ca(cert)
         content = client.get_content(
           "https://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
-        expect(content).to include(
-          "src=\"https://#{opts['host']}:#{opts['reload_port']}/livereload.js")
+        expect(content).to include(%q(src="//'))
       end
 
       it "serves nothing else over HTTP on the default LiveReload port" do

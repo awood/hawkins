@@ -94,7 +94,7 @@ module Hawkins
           # path matching is very loose so that a message to reload "/" will always
           # lead the page to reload since every page starts with "/".
           Jekyll::Hooks.register(:site, :post_write) do
-            if @changed_pages && @reload_reactor && @reload_reactor.is_running
+            if @changed_pages && @reload_reactor && @reload_reactor.running?
               ignore, @changed_pages = @changed_pages.partition do |p|
                 Array(opts["ignore"]).any? do |filter|
                   File.fnmatch(filter, Jekyll.sanitized_path(p.relative_path))
