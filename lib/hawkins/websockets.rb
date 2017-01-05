@@ -142,6 +142,7 @@ module Hawkins
       end
     end
 
+    # rubocop:disable Style/MultilineMethodCallBraceLayout
     def connect(ws, _handshake)
       @connections_count += 1
       Jekyll.logger.info("LiveReload:", "Browser connected") if @connections_count == 1
@@ -149,8 +150,8 @@ module Hawkins
         JSON.dump(
           :command => 'hello',
           :protocols => ['http://livereload.com/protocols/official-7'],
-          :serverName => 'jekyll livereload',
-        ))
+          :serverName => 'jekyll livereload')
+      )
 
       @websockets << ws
     end

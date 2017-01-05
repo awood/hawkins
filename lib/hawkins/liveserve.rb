@@ -111,7 +111,6 @@ module Hawkins
         # when we get ready to party, checking for an setting up an error page
         # and making sure our destination exists.
 
-        private
         def setup(destination)
           require_relative "./servlet"
 
@@ -128,7 +127,6 @@ module Hawkins
 
         #
 
-        private
         def webrick_opts(opts)
           opts = {
             :JekyllOptions      => opts,
@@ -155,19 +153,16 @@ module Hawkins
 
         # Recreate NondisclosureName under utf-8 circumstance
 
-        private
         def file_handler_opts
           WEBrick::Config::FileHandler.merge(
             :FancyIndexing     => true,
             :NondisclosureName => [
               '.ht*', '~*'
-            ]
-          )
+            ])
         end
 
         #
 
-        private
         def server_address(server, opts)
           address = server.config[:BindAddress]
           baseurl = "#{opts['baseurl']}/" if opts["baseurl"]
@@ -184,7 +179,6 @@ module Hawkins
 
         #
 
-        private
         def launch_browser(server, opts)
           command =
             if Jekyll::Utils::Platforms.windows?
@@ -201,7 +195,6 @@ module Hawkins
         # by the user.  This method determines what we do based on what you
         # ask us to do.
 
-        private
         def boot_or_detach(server, opts)
           if opts["detach"]
             pid = Process.fork do
@@ -220,7 +213,6 @@ module Hawkins
 
         # Make the stack verbose if the user requests it.
 
-        private
         def enable_logging(opts)
           opts[:AccessLog] = []
           level = WEBrick::Log.const_get(opts[:JekyllOptions]["verbose"] ? :DEBUG : :WARN)
@@ -231,7 +223,6 @@ module Hawkins
         # provide both types of certificates commonly needed.  Raise if they
         # forget to add one of the certificates.
 
-        private
         def enable_ssl(opts)
           jekyll_opts = opts[:JekyllOptions]
           return if !jekyll_opts['ssl_cert'] && !jekyll_opts['ssl_key']
@@ -253,7 +244,6 @@ module Hawkins
           opts[:SSLEnable] = true
         end
 
-        private
         def start_callback(detached)
           unless detached
             proc do
@@ -273,7 +263,6 @@ module Hawkins
           end
         end
 
-        private
         def stop_callback(detached)
           unless detached
             proc do
@@ -293,7 +282,6 @@ module Hawkins
           end
         end
 
-        private
         def mime_types
           file = File.expand_path('../mime.types', File.dirname(__FILE__))
           WEBrick::HTTPUtils.load_mime_types(file)

@@ -4,6 +4,8 @@ AbcSize:
   Enabled: false
 AlignParameters:
   EnforcedStyle: with_fixed_indentation
+BlockLength:
+  Enabled: false
 ClassLength:
   # It's not worth bending over backwards to avoid long classes.
   Enabled: false
@@ -42,6 +44,8 @@ ModuleFunction:
   Enabled: false
 ModuleLength:
   Enabled: false
+MultilineMethodCallBraceLayout:
+  EnforcedStyle: same_line
 NegatedWhile:
   Enabled: false
 NumericLiterals:
