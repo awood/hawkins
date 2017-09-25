@@ -1,6 +1,6 @@
-# coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
 require 'hawkins/version'
 
 Gem::Specification.new do |spec|
@@ -31,6 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency("pry-byebug")
   # Rubocop can issue new releases with new checks which can result
   # in errors we don't want.  We'll manage the version very strictly.
-  spec.add_development_dependency("rubocop", "= 0.46.0")
+  spec.add_development_dependency("rubocop", "= 0.50.0")
   spec.add_development_dependency("simplecov")
 end

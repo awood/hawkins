@@ -30,14 +30,15 @@ module Hawkins
           options["editor"] ||= ENV['VISUAL'] || ENV['EDITOR'] || 'vi'
           begin
             date = Date.parse(options["date"])
-          rescue
+          rescue ArgumentError
             Jekyll.logger.abort_with("Could not convert #{options['date']} into date format.")
           end
 
           if args.length != 1
             Jekyll.logger.abort_with(
               "Please provide an argument to use as the post title.\n
-              Remember to quote multiword strings.")
+              Remember to quote multiword strings."
+            )
           else
             title = args[0]
           end
@@ -58,7 +59,8 @@ module Hawkins
           # TODO ask if user wishes to overwrite
           if File.exist?(filename)
             Jekyll.logger.abort_with(
-              "#{filename} already exists.  Cowardly refusing to overwrite it.")
+              "#{filename} already exists.  Cowardly refusing to overwrite it."
+            )
           end
 
           content = <<-CONTENT

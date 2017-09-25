@@ -156,9 +156,8 @@ module Hawkins
         def file_handler_opts
           WEBrick::Config::FileHandler.merge(
             :FancyIndexing     => true,
-            :NondisclosureName => [
-              '.ht*', '~*'
-            ])
+            :NondisclosureName => ['.ht*', '~*']
+          )
         end
 
         #
