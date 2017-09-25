@@ -8,4 +8,5 @@ module Hawkins
   require 'hawkins/websockets'
   require 'hawkins/liveserve'
   require 'hawkins/version'
+  require 'hawkins/thread_event.rb'
 end

@@ -58,8 +58,8 @@ module Hawkins
         end
 
         Commands::LiveServe.mutex.synchronize do
-          if Commands::LiveServe.is_running
-            Commands::LiveServe.running_cond.wait(Commands::LiveServe.mutex)
+          if Commands::LiveServe.running
+            Commands::LiveServe.run_cond.wait(Commands::LiveServe.mutex)
           end
         end
 
@@ -73,8 +73,8 @@ module Hawkins
         @thread.abort_on_exception = true
 
         Commands::LiveServe.mutex.synchronize do
-          unless Commands::LiveServe.is_running
-            Commands::LiveServe.running_cond.wait(Commands::LiveServe.mutex)
+          unless Commands::LiveServe.running
+            Commands::LiveServe.run_cond.wait(Commands::LiveServe.mutex)
           end
         end
       end

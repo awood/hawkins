@@ -6,8 +6,8 @@ module Hawkins
       # Based on pattern described in
       # https://emptysqua.re/blog/an-event-synchronization-primitive-for-ruby/
       @mutex = Mutex.new
-      @running_cond = ConditionVariable.new
-      @is_running = false
+      @run_cond = ConditionVariable.new
+      @running = false
 
       class << self
         COMMAND_OPTIONS = {
@@ -20,7 +20,7 @@ module Hawkins
 
         LIVERELOAD_PORT = 35729
 
-        attr_reader :mutex, :running_cond, :is_running
+        attr_reader :mutex, :run_cond, :running
 
         #
 
@@ -72,7 +72,7 @@ module Hawkins
         end
 
         def shutdown
-          @server.shutdown if @is_running
+          @server.shutdown if @running
         end
 
         private
@@ -248,16 +248,10 @@ module Hawkins
           unless detached
             proc do
               mutex.synchronize do
-                unless @reload_reactor.nil?
-                  @reload_reactor.reactor_mutex.synchronize do
-                    unless EM.reactor_running?
-                      @reload_reactor.reactor_running_cond.wait(@reload_reactor.reactor_mutex)
-                    end
-                  end
-                end
-                @is_running = true
+                @reload_reactor.started_event.wait unless @reload_reactor.nil?
+                @running = true
                 Jekyll.logger.info("Server running...", "press ctrl-c to stop.")
-                running_cond.signal
+                @run_cond.broadcast
               end
             end
           end
@@ -269,14 +263,10 @@ module Hawkins
               mutex.synchronize do
                 unless @reload_reactor.nil?
                   @reload_reactor.stop
-                  @reload_reactor.reactor_mutex.synchronize do
-                    if EM.reactor_running?
-                      @reload_reactor.reactor_running_cond.wait(@reload_reactor.reactor_mutex)
-                    end
-                  end
+                  @reload_reactor.stopped_event.wait
                 end
-                @is_running = false
-                running_cond.signal
+                @running = false
+                @run_cond.broadcast
               end
             end
           end
