@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Hawkins
   module Commands
     class Post < Jekyll::Command

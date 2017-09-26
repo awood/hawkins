@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "webrick"
 require "jekyll/commands/serve/servlet"
 
@@ -122,9 +124,9 @@ module Hawkins
           src = ''
           # XHTML standard requires ampersands to be encoded as entities when in attributes
           # See http://stackoverflow.com/a/2190292
-          src << "&amp;mindelay=#{@options['min_delay']}" if @options["min_delay"]
-          src << "&amp;maxdelay=#{@options['max_delay']}" if @options["max_delay"]
-          src << "&amp;port=#{@options['reload_port']}" if @options["reload_port"]
+          src += "&amp;mindelay=#{@options['min_delay']}" if @options["min_delay"]
+          src += "&amp;maxdelay=#{@options['max_delay']}" if @options["max_delay"]
+          src += "&amp;port=#{@options['reload_port']}" if @options["reload_port"]
           src
         end
       end

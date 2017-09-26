@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'em-websocket'
 require 'http/parser'

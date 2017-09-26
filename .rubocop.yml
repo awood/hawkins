@@ -1,4 +1,7 @@
-# http://www.rubydoc.info/gems/rubocop/0.36.0/RuboCop/Cop/Style/
+# Oldest supported Ruby version.
+# See http://rubocop.readthedocs.io/en/latest/configuration/#setting-the-target-ruby-version
+AllCops:
+  TargetRubyVersion: 2.0
 
 AbcSize:
   Enabled: false
@@ -72,6 +75,8 @@ StringLiterals:
   # They say to not use double quoted strings unless there is interpolation.
   # While this gives a marginal parse time speedup, it makes working with
   # strings annoying.
+  Enabled: false
+Style/SafeNavigation:
   Enabled: false
 SymbolArray:
   Enabled: false
