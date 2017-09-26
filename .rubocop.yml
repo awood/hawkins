@@ -1,4 +1,7 @@
-# http://www.rubydoc.info/gems/rubocop/0.36.0/RuboCop/Cop/Style/
+# Oldest supported Ruby version.
+# See http://rubocop.readthedocs.io/en/latest/configuration/#setting-the-target-ruby-version
+AllCops:
+  TargetRubyVersion: 2.0
 
 AbcSize:
   Enabled: false
@@ -44,14 +47,14 @@ ModuleFunction:
   Enabled: false
 ModuleLength:
   Enabled: false
-MultilineMethodCallBraceLayout:
-  EnforcedStyle: same_line
 NegatedWhile:
   Enabled: false
 NumericLiterals:
   Enabled: false
 ParenthesesAroundCondition:
   AllowSafeAssignment: false
+PercentLiteralDelimiters:
+  Enabled: false
 PerceivedComplexity:
   Enabled: false
 PerlBackrefs:
@@ -73,11 +76,17 @@ StringLiterals:
   # While this gives a marginal parse time speedup, it makes working with
   # strings annoying.
   Enabled: false
+Style/SafeNavigation:
+  Enabled: false
+SymbolArray:
+  Enabled: false
 TrailingCommaInArguments:
   Enabled: false
 TrailingCommaInLiteral:
   EnforcedStyleForMultiline: comma
 TrivialAccessors:
+  Enabled: false
+UselessAccessModifier:
   Enabled: false
 WhileUntilModifier:
   Enabled: false

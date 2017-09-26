@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'tmpdir'
 require 'httpclient'
 
@@ -58,8 +60,8 @@ module Hawkins
         end
 
         Commands::LiveServe.mutex.synchronize do
-          if Commands::LiveServe.is_running
-            Commands::LiveServe.running_cond.wait(Commands::LiveServe.mutex)
+          if Commands::LiveServe.running
+            Commands::LiveServe.run_cond.wait(Commands::LiveServe.mutex)
           end
         end
 
@@ -73,8 +75,8 @@ module Hawkins
         @thread.abort_on_exception = true
 
         Commands::LiveServe.mutex.synchronize do
-          unless Commands::LiveServe.is_running
-            Commands::LiveServe.running_cond.wait(Commands::LiveServe.mutex)
+          unless Commands::LiveServe.running
+            Commands::LiveServe.run_cond.wait(Commands::LiveServe.mutex)
           end
         end
       end
@@ -93,7 +95,8 @@ module Hawkins
       it "serves livereload.js over HTTP on the default LiveReload port" do
         opts = serve(standard_opts)
         content = client.get_content(
-          "http://#{opts['host']}:#{opts['reload_port']}/livereload.js")
+          "http://#{opts['host']}:#{opts['reload_port']}/livereload.js"
+        )
         expect(content).to include('LiveReload.on(')
       end
 
@@ -107,7 +110,8 @@ module Hawkins
 
         client.ssl_config.add_trust_ca(cert)
         content = client.get_content(
-          "https://#{opts['host']}:#{opts['reload_port']}/livereload.js")
+          "https://#{opts['host']}:#{opts['reload_port']}/livereload.js"
+        )
         expect(content).to include('LiveReload.on(')
       end
 
@@ -121,7 +125,8 @@ module Hawkins
 
         client.ssl_config.add_trust_ca(cert)
         content = client.get_content(
-          "https://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
+          "https://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html"
+        )
         expect(content).to include(%q(src="//'))
       end
 
@@ -135,7 +140,8 @@ module Hawkins
       it "inserts the LiveReload script tags" do
         opts = serve(standard_opts)
         content = client.get_content(
-          "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
+          "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html"
+        )
         expect(content).to include("livereload.js?snipver=1&amp;port=#{opts['livereload_port']}")
         expect(content).to include("I am a simple web page")
       end
@@ -143,7 +149,8 @@ module Hawkins
       it "applies the max and min delay options" do
         opts = serve(standard_opts.merge("max_delay" => "1066", "min_delay" => "3"))
         content = client.get_content(
-          "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html")
+          "http://#{opts['host']}:#{opts['port']}/#{opts['baseurl']}/hello.html"
+        )
         expect(content).to include("&amp;mindelay=3")
         expect(content).to include("&amp;maxdelay=1066")
       end
@@ -154,14 +161,17 @@ module Hawkins
         port = opts['port']
         base = opts['baseurl']
         content = client.get_content(
-          "http://#{host}:#{port}/#{base}/hello.html")
+          "http://#{host}:#{port}/#{base}/hello.html"
+        )
         expect(content).to include(
-          "WEB_SOCKET_SWF_LOCATION = \"/__livereload/WebSocketMain.swf")
+          "WEB_SOCKET_SWF_LOCATION = \"/__livereload/WebSocketMain.swf"
+        )
         expect(content).to include("__livereload/swfobject.js")
         expect(content).to include("__livereload/web_socket.js")
 
         res = client.get(
-          "http://#{host}:#{port}/#{base}/__livereload/WebSocketMain.swf")
+          "http://#{host}:#{port}/#{base}/__livereload/WebSocketMain.swf"
+        )
         expect(res.status_code).to eq(200)
       end
     end

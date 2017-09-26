@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'em-websocket'
 require 'http/parser'
@@ -20,7 +22,9 @@ module Hawkins
         em_opts[:secure] = true
       end
 
-      # Too noisy even for debug level logging.
+      # This is too noisy even for --verbose, but uncomment if you need it for
+      # a specific WebSockets issue.  Adding ?LR-verbose=true onto the URL will
+      # enable logging on the client side.
       # em_opts[:debug] = true
 
       super(em_opts)
@@ -67,17 +71,20 @@ module Hawkins
   class LiveReloadReactor
     attr_reader :thread
     attr_reader :opts
-    attr_reader :reactor_mutex, :reactor_running_cond
+    attr_reader :started_event
+    attr_reader :stopped_event
 
     def initialize
       @thread = nil
       @websockets = []
       @connections_count = 0
-      @reactor_mutex = Mutex.new
-      @reactor_running_cond = ConditionVariable.new
+      @started_event = Utils::ThreadEvent.new
+      @stopped_event = Utils::ThreadEvent.new
     end
 
     def stop
+      # There is only one EventMachine instance per Ruby process so stopping
+      # it here will stop the reactor thread we have running.
       EM.stop if EM.reactor_running?
       Jekyll.logger.debug("LiveReload Server:", "halted")
     end
@@ -108,15 +115,11 @@ module Hawkins
 
           # Notify blocked threads that EventMachine has started or shutdown
           EM.schedule do
-            @reactor_mutex.synchronize do
-              @reactor_running_cond.broadcast
-            end
+            @started_event.set
           end
 
           EM.add_shutdown_hook do
-            @reactor_mutex.synchronize do
-              @reactor_running_cond.broadcast
-            end
+            @stopped_event.set
           end
         end
       end
@@ -126,23 +129,23 @@ module Hawkins
     # For a description of the protocol see http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
     def reload(pages)
       pages.each do |p|
+        Jekyll.logger.info("Page #{p.name}, #{p.basename}, #{p.ext}, #{p.permalink}, #{p.url}")
         msg = {
           :command => 'reload',
-          :path => p.path,
+          :path => p.url,
           :liveCSS => true,
         }
 
         # TODO Add support for override URL?
         # See http://feedback.livereload.com/knowledgebase/articles/86220-preview-css-changes-against-a-live-site-then-uplo
 
-        Jekyll.logger.debug("LiveReload:", "Reloading #{p.path}")
+        Jekyll.logger.debug("LiveReload:", "Reloading #{p.url}")
         @websockets.each do |ws|
           ws.send(JSON.dump(msg))
         end
       end
     end
 
-    # rubocop:disable Style/MultilineMethodCallBraceLayout
     def connect(ws, _handshake)
       @connections_count += 1
       Jekyll.logger.info("LiveReload:", "Browser connected") if @connections_count == 1
@@ -150,7 +153,8 @@ module Hawkins
         JSON.dump(
           :command => 'hello',
           :protocols => ['http://livereload.com/protocols/official-7'],
-          :serverName => 'jekyll livereload')
+          :serverName => 'jekyll livereload'
+        )
       )
 
       @websockets << ws

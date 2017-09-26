@@ -52,6 +52,10 @@ LiveReload is running on.  Generally speaking, these exceptions will be
 Hawkins does not currently work on JRuby.  I'm working on figuring out why, but
 be forewarned.
 
+## Troubleshooting
+You can add "?LR-verbose=true" onto the URL and LiveReload will log some
+messages to Firefox's Web Developer Console (or the Chrome equivalent).
+
 ## Thanks
 Lots of thanks to [guard-livereload](https://github.com/guard/guard-livereload)
 and [rack-livereload](https://github.com/johnbintz/rack-livereload) which
